@@ -3,15 +3,15 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DetailedProduct } from '../../../core/model/detailedProduct.model';
-import { CompanyResponse } from '../../../core/model/dto/companyDTO/companyResponse.model';
-import { SubcategoryResponse } from '../../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
-import { ProductService } from '../../../core/services/productService/product.service';
-import { CompanyService } from '../../../core/services/companyService/company.service';
-import { ProductImageService } from '../../../core/services/productImageService/productImage.service';
-import { SubcategoryService } from '../../../core/services/subcategoryService/subcategory.service';
-import { SharedService } from '../../../core/services/sharedService/shared.service';
-import { ProductRequest } from '../../../core/model/dto/productDTO/productRequest.model';
+import { DetailedProduct } from '../../core/model/detailedProduct.model';
+import { CompanyResponse } from '../../core/model/dto/companyDTO/companyResponse.model';
+import { SubcategoryResponse } from '../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
+import { ProductService } from '../../core/services/productService/product.service';
+import { CompanyService } from '../../core/services/companyService/company.service';
+import { ProductImageService } from '../../core/services/productImageService/productImage.service';
+import { SubcategoryService } from '../../core/services/subcategoryService/subcategory.service';
+import { SharedService } from '../../core/services/sharedService/shared.service';
+import { ProductRequest } from '../../core/model/dto/productDTO/productRequest.model';
 
 
 @Component({

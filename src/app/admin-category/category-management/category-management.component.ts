@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CategoryResponse } from '../../../core/model/dto/categoryDTO/categoryResponse.model';
-import { SubcategoryResponse } from '../../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
-import { CategoryRequest } from '../../../core/model/dto/categoryDTO/categoryRequest.model';
-import { CategoryService } from '../../../core/services/categoryService/category.service';
-import { SubcategoryService } from '../../../core/services/subcategoryService/subcategory.service';
-import { SubcategoryRequest } from '../../../core/model/dto/subcategoryDTO/subcategoryRequest.model';
+import { CategoryResponse } from '../../core/model/dto/categoryDTO/categoryResponse.model';
+import { SubcategoryResponse } from '../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
+import { CategoryRequest } from '../../core/model/dto/categoryDTO/categoryRequest.model';
+import { CategoryService } from '../../core/services/categoryService/category.service';
+import { SubcategoryService } from '../../core/services/subcategoryService/subcategory.service';
+import { SubcategoryRequest } from '../../core/model/dto/subcategoryDTO/subcategoryRequest.model';
+
 
 
 @Component({

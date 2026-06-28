@@ -2,8 +2,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserResponse } from '../../../core/model/dto/userDTO/userResponse.model';
-import { UserService } from '../../../core/services/userService/user.service';
+import { UserResponse } from '../../core/model/dto/userDTO/userResponse.model';
+import { UserService } from '../../core/services/userService/user.service';
 
 
 @Component({

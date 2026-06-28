@@ -3,13 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
-import { CompanyResponse } from '../../../core/model/dto/companyDTO/companyResponse.model';
-import { CompanyMemberResponse } from '../../../core/model/dto/companyMemberDTO/CompanyMemberResponse.model';
-import { CompanyRole } from '../../../core/model/enums/companyRole.enum.model';
-import { CompanyService } from '../../../core/services/companyService/company.service';
-import { CompanyMemberService } from '../../../core/services/companyMemberService/company-member.service';
-import { UserService } from '../../../core/services/userService/user.service';
-import { SharedService } from '../../../core/services/sharedService/shared.service';
+import { CompanyResponse } from '../../core/model/dto/companyDTO/companyResponse.model';
+import { CompanyMemberResponse } from '../../core/model/dto/companyMemberDTO/CompanyMemberResponse.model';
+import { CompanyRole } from '../../core/model/enums/companyRole.enum.model';
+import { CompanyService } from '../../core/services/companyService/company.service';
+import { CompanyMemberService } from '../../core/services/companyMemberService/company-member.service';
+import { UserService } from '../../core/services/userService/user.service';
+import { SharedService } from '../../core/services/sharedService/shared.service';
 
 
 @Component({

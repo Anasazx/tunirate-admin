@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CompanyResponse } from '../../../core/model/dto/companyDTO/companyResponse.model';
-import { SubcategoryResponse } from '../../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
-import { ProductService } from '../../../core/services/productService/product.service';
-import { CompanyService } from '../../../core/services/companyService/company.service';
-import { SubcategoryService } from '../../../core/services/subcategoryService/subcategory.service';
-import { ProductRequest } from '../../../core/model/dto/productDTO/productRequest.model';
+import { CompanyResponse } from '../../core/model/dto/companyDTO/companyResponse.model';
+import { SubcategoryResponse } from '../../core/model/dto/subcategoryDTO/subcategoryResponse.model';
+import { ProductService } from '../../core/services/productService/product.service';
+import { CompanyService } from '../../core/services/companyService/company.service';
+import { SubcategoryService } from '../../core/services/subcategoryService/subcategory.service';
+import { ProductRequest } from '../../core/model/dto/productDTO/productRequest.model';
 
 
 

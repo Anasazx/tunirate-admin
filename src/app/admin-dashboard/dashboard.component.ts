@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { forkJoin } from 'rxjs';
-import { ProductService } from '../../core/services/productService/product.service';
-import { CompanyService } from '../../core/services/companyService/company.service';
-import { UserService } from '../../core/services/userService/user.service';
+import { ProductService } from '../core/services/productService/product.service';
+import { CompanyService } from '../core/services/companyService/company.service';
+import { UserService } from '../core/services/userService/user.service';
 
 @Component({
   selector: 'app-dashboard',

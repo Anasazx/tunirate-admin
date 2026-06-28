@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CompanyResponse } from '../../../core/model/dto/companyDTO/companyResponse.model';
-import { CompanyRequest } from '../../../core/model/dto/companyDTO/companyRequest.model';
-import { CompanyService } from '../../../core/services/companyService/company.service';
+import { CompanyResponse } from '../../core/model/dto/companyDTO/companyResponse.model';
+import { CompanyRequest } from '../../core/model/dto/companyDTO/companyRequest.model';
+import { CompanyService } from '../../core/services/companyService/company.service';
 
 
 @Component({

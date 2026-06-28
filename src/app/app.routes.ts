@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
-import { AdminMainComponent } from './admin/admin-layout/admin-main/admin-main.component';
-import { DashboardComponent } from './admin/admin-dashboard/dashboard.component';
-import { ProductsManagementComponent } from './admin/admin-product/products-management/products-management.component';
-import { NewProductComponent } from './admin/admin-product/new-product/new-product.component';
-import { EditProductComponent } from './admin/admin-product/edit-product/edit-product.component';
-import { CompanyManagementComponent } from './admin/admin-company/company-management/company-management.component';
-import { EditCompanyComponent } from './admin/admin-company/edit-company/edit-company.component';
-import { CategoryManagementComponent } from './admin/admin-category/category-management/category-management.component';
-import { UsersManagementComponent } from './admin/admin-user/users-management/users-management.component';
+import { AdminMainComponent } from './admin-layout/admin-main/admin-main.component';
+import { DashboardComponent } from './admin-dashboard/dashboard.component';
+import { ProductsManagementComponent } from './admin-product/products-management/products-management.component';
+import { NewProductComponent } from './admin-product/new-product/new-product.component';
+import { EditProductComponent } from './admin-product/edit-product/edit-product.component';
+import { CompanyManagementComponent } from './admin-company/company-management/company-management.component';
+import { EditCompanyComponent } from './admin-company/edit-company/edit-company.component';
+import { UsersManagementComponent } from './admin-user/users-management/users-management.component';
+import { CategoryManagementComponent } from './admin-category/category-management/category-management.component';
 
 
 export const routes: Routes = [

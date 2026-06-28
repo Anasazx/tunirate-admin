@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ProductService } from '../../../core/services/productService/product.service';
-import { ProductResponse } from '../../../core/model/dto/productDTO/productResponse.model';
+import { ProductService } from '../../core/services/productService/product.service';
+import { ProductResponse } from '../../core/model/dto/productDTO/productResponse.model';
 
 @Component({
   selector: 'app-products-management',
