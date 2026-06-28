@@ -1,0 +1,62 @@
+<div class="p-8 bg-gray-50 min-h-screen">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <p class="text-gray-600 mt-1">Welcome to your admin dashboard</p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div *ngFor="let stat of stats" class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-600 text-sm">{{ stat.label }}</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
+        </div>
+        <span class="text-3xl">{{ stat.icon }}</span>
+      </div>
+      <div class="mt-4">
+        <a [routerLink]="stat.label === 'Products' ? '/admin/products' : stat.label === 'Companies' ? '/admin/companies' : '/admin/users'" class="text-sm text-blue-600 hover:underline">Manage {{ stat.label }}</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white border rounded-lg p-4">
+      <h3 class="font-semibold mb-3">Recent Products</h3>
+      <ul class="space-y-2 text-sm">
+        <li *ngFor="let p of recentProducts" class="flex items-center justify-between">
+          <div>
+            <div class="font-medium text-gray-800">{{ p.name }}</div>
+            <div class="text-xs text-gray-500">{{ p.category }}</div>
+          </div>
+          <div class="text-xs text-gray-500">{{ p.createdAt | date:'short' }}</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-white border rounded-lg p-4">
+      <h3 class="font-semibold mb-3">Recent Companies</h3>
+      <ul class="space-y-2 text-sm">
+        <li *ngFor="let c of recentCompanies" class="flex items-center justify-between">
+          <div class="font-medium text-gray-800">{{ c.name }}</div>
+          <div class="text-xs text-gray-500">{{ c.description }}</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-white border rounded-lg p-4">
+      <h3 class="font-semibold mb-3">Recent Users</h3>
+      <ul class="space-y-2 text-sm">
+        <li *ngFor="let u of recentUsers" class="flex items-center justify-between">
+          <div>
+            <div class="font-medium text-gray-800">{{ u.name }}</div>
+            <div class="text-xs text-gray-500">{{ u.email }}</div>
+          </div>
+          <div class="text-xs text-gray-500">{{ u.createdAt | date:'short' }}</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</div>

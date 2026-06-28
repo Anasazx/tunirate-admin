@@ -1,0 +1,198 @@
+<div class="max-w-3xl mx-auto space-y-6">
+
+<!-- Company -->
+<div class="bg-white border rounded-lg p-6">
+
+  <h2 class="text-xl font-semibold mb-4">
+    {{ isEditMode ? 'Edit Company' : 'Create Company' }}
+  </h2>
+
+  <div class="space-y-5">
+
+    <!-- NAME -->
+    <div>
+      <label class="block text-sm mb-1">Name</label>
+      <input [(ngModel)]="form.name"
+             class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div>
+      <label class="block text-sm mb-1">Description</label>
+      <textarea [(ngModel)]="form.description"
+                rows="4"
+                class="w-full border rounded px-3 py-2"></textarea>
+    </div>
+
+    <!-- VERIFIED -->
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" [(ngModel)]="form.verified">
+      Verified
+    </label>
+
+    <!-- LOGO UPLOAD -->
+    <div *ngIf="isEditMode" class="border rounded p-4 space-y-3">
+      <p class="text-sm font-medium">Logo</p>
+      <div *ngIf="form.logoUrl; else noLogo">
+        <img
+          [src]="this.sharedService.getImageUrl(form.logoUrl)"
+          class="h-16 w-16 object-cover rounded border"
+        />
+      </div>
+
+      <ng-template #noLogo>
+        <p class="text-xs text-gray-400">No logo uploaded</p>
+      </ng-template>
+      <input type="file" (change)="onLogoSelected($event)" />
+      <button *ngIf="form.logoUrl"
+              (click)="deleteLogo()"
+              class="text-sm text-red-600 hover:underline">
+        Remove logo
+      </button>
+    </div>
+
+    <!-- BANNER UPLOAD -->
+    <div *ngIf="isEditMode" class="border rounded p-4 space-y-3">
+
+      <p class="text-sm font-medium">Banner</p>
+
+      <div *ngIf="form.bannerUrl; else noBanner">
+        <img
+          [src]="this.sharedService.getImageUrl(form.bannerUrl)"
+          class="h-24 w-full object-cover rounded border"
+        />
+      </div>
+
+      <ng-template #noBanner>
+        <p class="text-xs text-gray-400">No banner uploaded</p>
+      </ng-template>
+
+      <input type="file" (change)="onBannerSelected($event)" />
+
+      <button *ngIf="form.bannerUrl"
+              (click)="deleteBanner()"
+              class="text-sm text-red-600 hover:underline">
+        Remove banner
+      </button>
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="flex gap-2 pt-2">
+
+      <button (click)="save()"
+              class="bg-green-600 text-white px-4 py-2 rounded">
+        Save
+      </button>
+
+      <button (click)="cancel()"
+              class="border px-4 py-2 rounded">
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+  <!-- Members -->
+  <div class="bg-white border rounded-lg p-6">
+
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold">Members</h3>
+
+      <button (click)="openMemberModal()"
+              class="text-sm px-3 py-2 border rounded">
+        + Add Member
+      </button>
+    </div>
+
+    <div class="divide-y">
+
+      <div *ngFor="let m of members"
+           class="flex items-center justify-between py-3">
+
+        <div>
+          <div class="font-medium">{{ m.user.name }}</div>
+          <div class="text-sm text-gray-500">{{ m.user.email }}</div>
+        </div>
+
+        <div class="flex items-center gap-4">
+
+          <select
+            [ngModel]="m.companyRole"
+            (ngModelChange)="updateMemberRole(m, $event)"
+            class="border rounded px-2 py-1 text-sm">
+            <option value="WORKER">WORKER</option>
+            <option value="HEAD">HEAD</option>
+          </select>
+
+          <button class="text-red-600 text-sm"
+                  (click)="removeMember(m.user.id)">
+            Remove
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- MEMBER MODAL -->
+<div *ngIf="showMemberModal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+  <div class="bg-white w-full max-w-md p-6 rounded-lg">
+
+    <h3 class="text-lg font-semibold mb-3">Add Member</h3>
+
+    <!-- ROLE SELECT -->
+    <div class="mb-3">
+      <label class="text-sm font-medium">Role</label>
+
+      <select [(ngModel)]="selectedRole"
+              class="w-full border px-3 py-2 rounded mt-1">
+        <option value="WORKER">WORKER</option>
+        <option value="HEAD">HEAD</option>
+      </select>
+    </div>
+
+    <!-- SEARCH INPUT -->
+    <input [(ngModel)]="searchTerm"
+           (input)="onSearch()"
+           placeholder="Search user..."
+           class="w-full border px-3 py-2 rounded mb-3">
+
+    <!-- RESULTS -->
+    <div class="max-h-60 overflow-auto border rounded">
+
+      <div *ngFor="let u of searchResults"
+           class="flex justify-between p-2 border-b">
+
+        <div>
+          <div class="font-medium">{{ u.name }}</div>
+          <div class="text-xs text-gray-500">{{ u.email }}</div>
+        </div>
+
+        <button (click)="addMember(u.id)"
+                class="text-blue-600 text-sm">
+          Add
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="flex justify-end mt-4">
+      <button (click)="closeMemberModal()"
+              class="px-3 py-1 border rounded">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>

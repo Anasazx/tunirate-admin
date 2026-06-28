@@ -1,0 +1,156 @@
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Category Management</h2>
+      <p class="text-sm text-gray-500">Create, update, and delete categories and their subcategories.</p>
+    </div>
+    <button (click)="loadData()" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="error" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+    {{ error }}
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Categories</h3>
+          <p class="text-sm text-gray-500">{{ categoryCount }} total</p>
+        </div>
+        <button (click)="startCreateCategory()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          New Category
+        </button>
+      </div>
+
+      <div class="px-5 py-4">
+        <div *ngIf="loadingCategories" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+          Loading categories...
+        </div>
+
+        <div *ngIf="!loadingCategories" class="overflow-hidden rounded-xl border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200 text-left">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th class="px-4 py-3">Name</th>
+                <th class="px-4 py-3">Subcategories</th>
+                <th class="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <tr *ngFor="let category of categories">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ category.name }}</td>
+                <td class="px-4 py-3 text-gray-600">
+                  {{ subcategoriesForCategory(category.id).length }}
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-3">
+                    <button (click)="startEditCategory(category)" class="text-sm font-medium text-blue-600 hover:text-blue-700">Edit</button>
+                    <button (click)="deleteCategory(category.id)" class="text-sm font-medium text-red-600 hover:text-red-700">Delete</button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="categories.length === 0">
+                <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">No categories found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            {{ categoryEditingId ? 'Edit Category' : 'Create Category' }}
+          </h4>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+              <input [(ngModel)]="categoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Category name" />
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="saveCategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                Save
+              </button>
+              <button (click)="cancelCategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Subcategories</h3>
+          <p class="text-sm text-gray-500">{{ subcategoryCount }} total</p>
+        </div>
+        <button (click)="startCreateSubcategory()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          New Subcategory
+        </button>
+      </div>
+
+      <div class="px-5 py-4">
+        <div *ngIf="loadingSubcategories" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+          Loading subcategories...
+        </div>
+
+        <div *ngIf="!loadingSubcategories" class="overflow-hidden rounded-xl border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200 text-left">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th class="px-4 py-3">Name</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <tr *ngFor="let subcategory of subcategories">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ subcategory.name }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ categoryNameForSubcategory(subcategory) }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-3">
+                    <button (click)="startEditSubcategory(subcategory)" class="text-sm font-medium text-blue-600 hover:text-blue-700">Edit</button>
+                    <button (click)="deleteSubcategory(subcategory.id)" class="text-sm font-medium text-red-600 hover:text-red-700">Delete</button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="subcategories.length === 0">
+                <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">No subcategories found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            {{ subcategoryEditingId ? 'Edit Subcategory' : 'Create Subcategory' }}
+          </h4>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+              <input [(ngModel)]="subcategoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Subcategory name" />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
+              <select [(ngModel)]="subcategoryForm.categoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500">
+                <option [ngValue]="null" disabled>Select category</option>
+                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="saveSubcategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                Save
+              </button>
+              <button (click)="cancelSubcategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

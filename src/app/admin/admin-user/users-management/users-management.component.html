@@ -1,0 +1,167 @@
+<div class="p-6">
+
+  <!-- HEADER -->
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Users</h2>
+      <p class="text-sm text-gray-500 mt-1">Manage account roles and access.</p>
+    </div>
+
+    <button (click)="load()" class="text-sm text-blue-600 hover:underline">
+      Refresh
+    </button>
+  </div>
+
+  <!-- LOADING / ERROR -->
+  <div *ngIf="loading" class="p-4 bg-white rounded border">Loading...</div>
+
+  <div *ngIf="error" class="p-4 bg-red-50 text-red-700 rounded border mb-4">
+    {{ error }}
+  </div>
+
+  <!-- SEARCH -->
+
+<div class="mb-4">
+
+  <input
+
+    type="text"
+
+    [(ngModel)]="searchTerm"
+
+    (input)="filterUsers()"
+
+    placeholder="Search users by name or email..."
+
+    class="w-full md:w-80 border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+  />
+
+</div>
+
+  <!-- TABLE -->
+  <div class="bg-white border rounded-2xl overflow-hidden">
+    <table class="w-full text-left">
+
+      <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+        <tr>
+          <th class="px-5 py-3">Name</th>
+          <th class="px-5 py-3">Email</th>
+          <th class="px-5 py-3">Role</th>
+          <th class="px-5 py-3">Created</th>
+          <th class="px-5 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+<tr *ngFor="let u of filteredUsers" class="border-t hover:bg-gray-50">
+
+          <td class="px-5 py-4">
+            <div class="font-medium">{{ u.name }}</div>
+            <div class="text-xs text-gray-500">ID {{ u.id }}</div>
+          </td>
+
+          <td class="px-5 py-4 text-gray-700">{{ u.email }}</td>
+
+          <td class="px-5 py-4">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                  [ngClass]="u.globalRole === 'ADMIN'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-gray-100 text-gray-700'">
+              {{ u.globalRole }}
+            </span>
+          </td>
+
+          <td class="px-5 py-4 text-sm text-gray-500">
+            {{ u.createdAt | date:'medium' }}
+          </td>
+
+          <td class="px-5 py-4 text-right space-x-3">
+
+            <button
+              (click)="openRoleModal(u); $event.stopPropagation()"
+              class="text-blue-600 text-sm font-medium">
+              Edit Role
+            </button>
+
+            <button
+              (click)="deleteUser(u.id); $event.stopPropagation()"
+              class="text-red-600 text-sm font-medium">
+              Delete
+            </button>
+
+          </td>
+
+        </tr>
+
+        <tr *ngIf="filteredUsers.length === 0">
+
+  <td colspan="5" class="p-6 text-center text-gray-500">
+
+    No users found
+
+  </td>
+
+</tr>
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div *ngIf="showRoleModal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+  <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg">
+
+    <h3 class="text-lg font-semibold mb-4">
+      Edit User Role
+    </h3>
+
+    <!-- USER INFO -->
+    <div class="mb-4">
+      <div class="text-sm text-gray-500">User</div>
+      <div class="font-semibold">{{ selectedUser?.name }}</div>
+      <div class="text-sm text-gray-600">{{ selectedUser?.email }}</div>
+    </div>
+
+    <!-- ROLE SELECT -->
+    <div class="mb-4">
+      <label class="text-sm font-medium">Role</label>
+
+      <select [(ngModel)]="draftRole"
+              class="w-full border rounded px-3 py-2 mt-1">
+
+        <option *ngFor="let role of roleOptions" [value]="role">
+          {{ role }}
+        </option>
+
+      </select>
+    </div>
+
+    <!-- WARNING -->
+    <div *ngIf="draftRole === 'ADMIN'"
+         class="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+      ⚠️ Granting ADMIN gives full system access
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="flex justify-end gap-2">
+
+      <button
+        (click)="closeRoleModal()"
+        class="px-4 py-2 border rounded">
+        Cancel
+      </button>
+
+      <button
+        (click)="saveRole()"
+        class="px-4 py-2 bg-blue-600 text-white rounded">
+        Save
+      </button>
+
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<div class="p-6">
+	<div class="flex items-center justify-between mb-6">
+		<div>
+			<h2 class="text-2xl font-bold">New Product</h2>
+			<p class="text-sm text-gray-500">Create a new product</p>
+		</div>
+	</div>
+
+	<div *ngIf="error" class="p-4 border rounded-lg bg-red-50 text-red-700 mb-4">{{ error }}</div>
+
+	<div class="bg-white border rounded-lg p-5 space-y-4">
+		<div>
+			<label class="block text-sm font-medium mb-1">Name</label>
+			<input [(ngModel)]="name" class="w-full border px-3 py-2 rounded-lg" />
+		</div>
+
+		<div>
+			<label class="block text-sm font-medium mb-1">Subcategory</label>
+			<select [(ngModel)]="selectedSubcategoryId" class="w-full border px-3 py-2 rounded-lg">
+				<option [ngValue]="null">Select subcategory</option>
+				<option *ngFor="let s of subcategories" [ngValue]="s.id">{{ s.name }}</option>
+			</select>
+		</div>
+
+		<div>
+			<label class="block text-sm font-medium mb-1">Company</label>
+			<select [(ngModel)]="selectedCompanyId" class="w-full border px-3 py-2 rounded-lg">
+				<option [ngValue]="null">Select company</option>
+				<option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
+			</select>
+		</div>
+
+		<div>
+			<label class="block text-sm font-medium mb-1">Description</label>
+			<textarea [(ngModel)]="description" rows="4" class="w-full border px-3 py-2 rounded-lg"></textarea>
+		</div>
+
+		<div class="flex items-center gap-3">
+			<button (click)="save()" [disabled]="saving" class="bg-blue-600 text-white px-4 py-2 rounded-lg">{{ saving ? 'Creating...' : 'Create' }}</button>
+			<a routerLink="/admin/products" class="px-4 py-2 border rounded-lg">Cancel</a>
+		</div>
+	</div>
+</div>

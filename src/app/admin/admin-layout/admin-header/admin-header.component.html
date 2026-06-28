@@ -1,0 +1,33 @@
+<header class="bg-white text-gray-800 shadow-md fixed top-0 left-0 right-0 z-40 border-b border-gray-200 h-16">
+  <div class="max-w-full mx-auto px-6 h-full flex items-center">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between w-full">
+      <!-- Left: Logo/Title -->
+      <div class="flex items-center gap-4">
+        <a
+          routerLink="/"
+          class="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition duration-200 font-medium"
+        >
+          ← Home
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+      </div>
+
+      <!-- Right: User Info & Logout -->
+      <div class="flex items-center gap-4">
+        <ng-container *ngIf="currentUser$ | async as user">
+          <div class="hidden sm:flex items-center gap-3">
+            <div class="text-right">
+              <p class="text-sm font-medium text-gray-900">{{ $any(user)?.email }}</p>
+              <p class="text-xs text-gray-500">Administrator</p>
+            </div>
+            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-700 border-2 border-gray-400">
+              {{ $any(user)?.email ? $any(user).email[0].toUpperCase() : 'U' }}
+            </div>
+          </div>
+          <button type="button" (click)="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">Logout</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</header>

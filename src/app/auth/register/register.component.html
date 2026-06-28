@@ -1,0 +1,80 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div class="container mx-auto p-4">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden lg:flex">
+
+      <!-- Left Panel: Branding -->
+      <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-600 p-12 flex-col justify-between">
+        <div>
+          <h1 class="text-white text-4xl font-extrabold">TuniRate</h1>
+          <p class="text-white text-opacity-80 mt-4">
+            Join our community and start sharing your opinions today.
+          </p>
+        </div>
+        <div class="text-white text-opacity-60 text-sm">
+          © 2026 TuniRate. All rights reserved.
+        </div>
+      </div>
+
+      <!-- Right Panel: Registration Form -->
+      <div class="w-full lg:w-1/2 p-8 lg:p-12">
+        <a routerLink="/" class="mb-4 inline-flex items-center text-sm font-medium text-blue-600 hover:underline">← Back to Home</a>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Create an Account</h2>
+        <p class="text-gray-600 mb-8">Get started by creating your new account.</p>
+
+        <form (submit)="onSubmit(username.value, email.value, password.value, confirmPassword.value, $event)">
+          <!-- Username Input -->
+          <div class="mb-6">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+            <input #username type="text" id="username" name="username"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                   placeholder="yourusername" required>
+          </div>
+
+          <!-- Email Input -->
+          <div class="mb-6">
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input #email type="email" id="email" name="email"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                   placeholder="you@example.com" required>
+          </div>
+
+          <!-- Password Input -->
+          <div class="mb-6">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input #password type="password" id="password" name="password"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                   placeholder="••••••••" required>
+          </div>
+
+          <!-- Confirm Password Input -->
+          <div class="mb-6">
+            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+            <input #confirmPassword type="password" id="confirm-password" name="confirm-password"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                   placeholder="••••••••" required>
+          </div>
+
+          <!-- Register Button -->
+          <div>
+            <button type="submit" [disabled]="loading"
+                    class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 disabled:opacity-60">
+              <span *ngIf="!loading">Create Account</span>
+              <span *ngIf="loading">Creating…</span>
+            </button>
+          </div>
+        </form>
+
+        <div *ngIf="error" class="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{{ error }}</div>
+
+        <!-- Sign In Link -->
+        <div class="mt-8 text-center">
+          <p class="text-sm text-gray-600">
+            Already have an account? <a routerLink="/login" class="font-medium text-blue-600 hover:underline">Sign in</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+

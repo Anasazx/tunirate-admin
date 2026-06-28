@@ -1,0 +1,187 @@
+<div class="space-y-6 p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900">
+        Products
+      </h1>
+
+      <p class="text-sm text-slate-500 mt-1">
+        Manage all products on the platform
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+
+      <button
+        routerLink="/admin/products"
+        class="px-4 py-2 border rounded-lg hover:bg-slate-50">
+        Refresh
+      </button>
+
+      <button
+        routerLink="/admin/products/new"
+        class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+        New Product
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white border rounded-xl p-4">
+
+    <div class="flex flex-wrap gap-4">
+
+      <div class="flex-1 min-w-[320px]">
+
+        <input
+          [(ngModel)]="query"
+          placeholder="Search by product, company or category..."
+          class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"/>
+
+      </div>
+
+      <select
+        [(ngModel)]="selectedStatus"
+        class="rounded-lg border border-gray-300 px-4 py-2.5">
+
+        <option value="">All Statuses</option>
+        <option value="DRAFT">Draft</option>
+        <option value="PENDING_REVIEW">Pending Review</option>
+        <option value="PUBLISHED">Published</option>
+        <option value="REJECTED">Rejected</option>
+        <option value="ARCHIVED">Archived</option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-hidden rounded-xl border bg-white">
+
+    <table class="w-full">
+
+      <thead class="bg-slate-50 border-b">
+
+      <tr class="text-sm text-slate-600">
+
+        <th class="px-5 py-4 text-left">Product</th>
+        <th class="px-5 py-4 text-left">Company</th>
+        <th class="px-5 py-4 text-left">Category</th>
+        <th class="px-5 py-4 text-left">Created By</th>
+        <th class="px-5 py-4 text-left">Updated By</th>
+        <th class="px-5 py-4 text-center">Status</th>
+        <th class="px-5 py-4 text-right">Actions</th>
+
+      </tr>
+
+      </thead>
+
+      <tbody>
+
+      <tr
+        *ngFor="let p of filtered"
+        class="border-b hover:bg-slate-50 transition">
+
+        <!-- Product -->
+        <td class="px-5 py-4">
+
+          <div>
+
+            <div class="font-medium text-slate-900">
+              {{ p.name }}
+            </div>
+
+            <div class="text-xs text-slate-500">
+
+              {{ p.subcategory || "-" }}
+
+            </div>
+
+          </div>
+
+        </td>
+
+        <!-- Company -->
+        <td class="px-5 py-4">
+
+          {{ p.companyName }}
+
+        </td>
+
+        <!-- Category -->
+        <td class="px-5 py-4">
+
+          {{ p.category }}
+
+        </td>
+
+        <!-- Created -->
+        <td class="px-5 py-4">
+
+          {{ p.createdByName || "-" }}
+
+        </td>
+
+        <!-- Updated -->
+        <td class="px-5 py-4">
+
+          {{ p.updatedByName || "-" }}
+
+        </td>
+
+        <!-- Status -->
+        <td class="px-5 py-4 text-center">
+
+            <span
+              class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+              [ngClass]="{
+                'bg-gray-100 text-gray-700': p.status === 'DRAFT',
+                'bg-amber-100 text-amber-700': p.status === 'PENDING_REVIEW',
+                'bg-green-100 text-green-700': p.status === 'PUBLISHED',
+                'bg-red-100 text-red-700': p.status === 'REJECTED',
+                'bg-slate-200 text-slate-700': p.status === 'ARCHIVED'
+              }">
+
+              {{ p.status.replace('_',' ') }}
+
+            </span>
+
+        </td>
+
+        <!-- Actions -->
+        <td class="px-5 py-4">
+
+          <div class="flex justify-end gap-2">
+
+            <button
+              [routerLink]="['/admin/products', p.id]"
+              class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-100">
+              Edit
+            </button>
+
+            <button
+              (click)="deleteProduct(p.id)"
+              class="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
+              Delete
+            </button>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
