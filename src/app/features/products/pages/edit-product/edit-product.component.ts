@@ -1,8 +1,8 @@
 
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DetailedProduct } from '../../models/detailedProduct.model';
+import { DetailedProductResponse } from '../../models/productDTO/detailedProductResponse.model';
 import { CompanyResponse } from '../../../companies/models/companyDTO/companyResponse.model';
 import { SubcategoryResponse } from '../../../category/models/subcategoryDTO/subcategoryResponse.model';
 import { ProductService } from '../../services/productService/product.service';
@@ -27,8 +27,7 @@ export class EditProductComponent implements OnInit {
   saving = false;
   imageSaving = false;
   error: string | null = null;
-  product: DetailedProduct | null = null;
-  isNewMode = false;
+  product: DetailedProductResponse | null = null;
   companies: CompanyResponse[] = [];
   subcategories: SubcategoryResponse[] = [];
   selectedSubcategoryId: number | null = null;
@@ -50,37 +49,15 @@ export class EditProductComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
+
+    const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loadCompanies();
     this.loadSubcategories();
 
-    if (idParam === 'new') {
-      // creation mode: initialize an empty product object
-      this.isNewMode = true;
-      this.product = {
-        id: 0,
-        name: '',
-        description: '',
-        category: '',
-        subcategory: '',
-        companyId: undefined,
-        companyName: '',
-        companyIsVerified: false,
-        companyLogoUrl: '',
-        averageRating: null,
-        reviewsCount: 0,
-        reviews: [],
-        images: []
-      } as DetailedProduct;
-      return;
-    }
-
-    const id = Number(idParam);
     if (!id) {
       this.error = 'Invalid product id';
       return;
     }
-
     this.load(id);
   }
 
@@ -123,7 +100,7 @@ export class EditProductComponent implements OnInit {
   load(id: number) {
     this.loading = true;
     this.error = null;
-    this.productService.getDetailedProductById(id).subscribe({
+    this.productService.getDetailedProductByIdAsAdmin(id).subscribe({
       next: (p) => {
         console.log("this is the return of product; ", p);
         this.product = p;
@@ -151,34 +128,35 @@ export class EditProductComponent implements OnInit {
 
   save() {
     if (!this.product) return;
+
     if (!this.product.companyId) {
       this.error = 'Please select a company';
       return;
     }
+
     this.saving = true;
+
     const payload: ProductRequest = {
       name: this.product.name,
       description: this.product.description ?? null,
       subcategoryId: this.selectedSubcategoryId
         ? String(this.selectedSubcategoryId)
         : (this.product.category ? String(this.product.category) : ''),
-      companyId: this.product.companyId ?? null
+      companyId: this.product.companyId
     };
-    const request$ = (this.product.id && this.product.id > 0)
-      ? this.productService.updateProductAsAdmin(this.product.id, payload)
-      : this.productService.createProductAsAdmin(payload);
 
-    request$.subscribe({
-      next: (res) => {
-        this.saving = false;
-        this.router.navigate(['/admin/products']);
-      },
-      error: (err) => {
-        console.error('Save failed', err);
-        this.error = 'Failed to save product';
-        this.saving = false;
-      }
-    });
+    this.productService.updateProductAsAdmin(this.product.id, payload)
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.router.navigate(['/admin/products']);
+        },
+        error: (err) => {
+          console.error('Save failed', err);
+          this.error = 'Failed to save product';
+          this.saving = false;
+        }
+      });
   }
 
 
@@ -214,10 +192,7 @@ export class EditProductComponent implements OnInit {
       this.error = 'Please select a file to upload';
       return;
     }
-    if (!this.product.id) {
-      this.error = 'Save the product before uploading images';
-      return;
-    }
+
     this.imageSaving = true;
     this.productImageService.uploadImageFile(this.product.id, this.selectedFile).subscribe({
       next: () => {
@@ -316,7 +291,6 @@ export class EditProductComponent implements OnInit {
   back() {
     this.router.navigate(['/admin/products']);
   }
-
 
   get mainImageUrl(): string | null {
     return (
