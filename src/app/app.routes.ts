@@ -1,16 +1,26 @@
 import { Routes } from '@angular/router';
-import { AdminMainComponent } from './admin-layout/admin-main/admin-main.component';
-import { DashboardComponent } from './admin-dashboard/dashboard.component';
-import { ProductsManagementComponent } from './admin-product/products-management/products-management.component';
-import { NewProductComponent } from './admin-product/new-product/new-product.component';
-import { EditProductComponent } from './admin-product/edit-product/edit-product.component';
-import { CompanyManagementComponent } from './admin-company/company-management/company-management.component';
-import { EditCompanyComponent } from './admin-company/edit-company/edit-company.component';
-import { UsersManagementComponent } from './admin-user/users-management/users-management.component';
-import { CategoryManagementComponent } from './admin-category/category-management/category-management.component';
+import { AdminMainComponent } from './core/layout/admin-main/admin-main.component';
+import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
+import { ProductsManagementComponent } from './features/products/pages/products-management/products-management.component';
+import { NewProductComponent } from './features/products/pages/new-product/new-product.component';
+import { CompanyManagementComponent } from './features/companies/pages/company-management/company-management.component';
+import { EditCompanyComponent } from './features/companies/pages/edit-company/edit-company.component';
+import { UsersManagementComponent } from './features/users/pages/users-management/users-management.component';
+import { CategoryManagementComponent } from './features/category/pages/category-management/category-management.component';
+import { LoginComponent } from './features/auth/pages/login/login.component';
+import { RegisterComponent } from './features/auth/pages/register/register.component';
+import { EditProductComponent } from './features/products/pages/edit-product/edit-product.component';
 
 
 export const routes: Routes = [
+  {
+    path: 'auth',
+    component: LoginComponent,
+    children: [
+      { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent },
+    ],
+  },
   {
     path: '',
     component: AdminMainComponent,

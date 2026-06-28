@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SharedService } from '../sharedService/shared.service';
-import { CompanyInvitationResponse } from '../../model/dto/companyInvitationDTO/CompanyInvitationResponse.model';
-import { CompanyInvitationRequest } from '../../model/dto/companyInvitationDTO/CompanyInvitationRequest.model';
+import { CompanyInvitationResponse } from '../../../features/companies/models/companyInvitationDTO/CompanyInvitationResponse.model';
+import { CompanyInvitationRequest } from '../../../features/companies/models/companyInvitationDTO/CompanyInvitationRequest.model';
 
 
 
@@ -56,5 +56,5 @@ export class CompanyInvitationService {
       {}
     );
   }
-  
+
 }

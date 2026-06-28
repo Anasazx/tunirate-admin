@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../sharedService/shared.service';
 import { Observable } from 'rxjs';
-import { ProductImageResponse } from '../../model/dto/productDTO/productImageResponse.model';
+import { ProductImageResponse } from '../../../features/products/models/productDTO/productImageResponse.model';
 
 
 
