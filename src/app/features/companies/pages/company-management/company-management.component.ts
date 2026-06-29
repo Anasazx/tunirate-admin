@@ -40,10 +40,10 @@ ngOnInit(): void {
 load() {
   this.loading = true;
 
-  this.companyService.getAllCompanies().subscribe({
+  this.companyService.getAllCompaniesAsAdmin().subscribe({
     next: (res) => {
       this.companies = res;
-      this.filteredCompanies = res; // ✅ IMPORTANT FIX
+      this.filteredCompanies = res; // IMPORTANT FIX
       this.loading = false;
     },
     error: (err) => {

@@ -10,6 +10,7 @@ import { CategoryManagementComponent } from './features/category/pages/category-
 import { LoginComponent } from './features/auth/pages/login/login.component';
 import { RegisterComponent } from './features/auth/pages/register/register.component';
 import { EditProductComponent } from './features/products/pages/edit-product/edit-product.component';
+import {ProductDetailsComponent} from './features/products/pages/product-details/product-details.component';
 
 
 export const routes: Routes = [
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: '', component: DashboardComponent },
       { path: 'products', component: ProductsManagementComponent },
       { path: 'products/new', component: NewProductComponent },
+      { path: 'products/details/:id', component: ProductDetailsComponent },
       { path: 'products/:id', component: EditProductComponent },
       { path: 'companies', component: CompanyManagementComponent },
       { path: 'companies/:id', component: EditCompanyComponent },

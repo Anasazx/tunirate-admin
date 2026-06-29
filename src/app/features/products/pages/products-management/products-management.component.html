@@ -86,7 +86,9 @@
 
       <tr
         *ngFor="let p of filtered"
-        class="border-b hover:bg-slate-50 transition">
+        class="border-b hover:bg-slate-50 transition cursor-pointer"
+        [routerLink]="['/products/details', p.id]"
+      >
 
         <!-- Product -->
         <td class="px-5 py-4">

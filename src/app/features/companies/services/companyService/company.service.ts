@@ -22,17 +22,12 @@ export class CompanyService {
     return this.http.get<CompanyResponse[]>(this.companyUrl);
   }
 
+  getAllCompaniesAsAdmin(): Observable<CompanyResponse[]> {
+    return this.http.get<CompanyResponse[]>(`${this.companyUrl}/op`);
+  }
+
   getCompanyById(id: number): Observable<CompanyResponse> {
     return this.http.get<CompanyResponse>(`${this.companyUrl}/${id}`);
-  }
-
-  getMyCompany(): Observable<CompanyResponse> {
-    return this.http.get<CompanyResponse>(`${this.companyUrl}/my`);
-  }
-
-  getCompanyByName(name: string): Observable<CompanyResponse> {
-    const params = new HttpParams().set('name', name);
-    return this.http.get<CompanyResponse>(`${this.companyUrl}/by-name`, { params });
   }
 
   createCompany(payload: CompanyRequest): Observable<CompanyResponse> {
@@ -45,10 +40,6 @@ export class CompanyService {
 
   deleteCompany(id: number): Observable<void> {
     return this.http.delete<void>(`${this.companyUrl}/${id}`);
-  }
-
-  getCompanyByProductId(productId: number): Observable<CompanyResponse> {
-    return this.http.get<CompanyResponse>(`${this.companyUrl}/by-product/${productId}`);
   }
 
   uploadLogo(companyId: number, file: File): Observable<void> {
