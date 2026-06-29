@@ -1,3 +1,4 @@
+<script src="../../../products/pages/products-management/products-management.component.spec.ts"></script>
 <div class="p-6">
 
   <!-- header -->
@@ -37,7 +38,7 @@
     {{ error }}
   </div>
 
-  
+
 
   <!-- table -->
   <div class="bg-white border rounded">
@@ -52,7 +53,7 @@
       </thead>
 
       <tbody>
-        <tr *ngFor="let c of filteredCompanies" class="border-t">
+        <tr *ngFor="let c of filteredCompanies" [routerLink]="['/companies/details', c.id]" class="border-b hover:bg-slate-50 transition cursor-pointer">
 
           <td class="p-3">{{ c.name }}</td>
 
@@ -62,7 +63,7 @@
 
           <td class="p-3 flex gap-3">
 
-            <a [routerLink]="['/admin/companies', c.id]"
+            <a [routerLink]="['/companies', c.id]"
                class="text-blue-600">
               Edit
             </a>

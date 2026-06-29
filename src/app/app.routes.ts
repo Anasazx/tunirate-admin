@@ -11,6 +11,7 @@ import { LoginComponent } from './features/auth/pages/login/login.component';
 import { RegisterComponent } from './features/auth/pages/register/register.component';
 import { EditProductComponent } from './features/products/pages/edit-product/edit-product.component';
 import {ProductDetailsComponent} from './features/products/pages/product-details/product-details.component';
+import {CompanyDetailsComponent} from './features/companies/pages/company-details/company-details.component';
 
 
 export const routes: Routes = [
@@ -33,6 +34,7 @@ export const routes: Routes = [
       { path: 'products/:id', component: EditProductComponent },
       { path: 'companies', component: CompanyManagementComponent },
       { path: 'companies/:id', component: EditCompanyComponent },
+      { path: 'companies/details/:id', component: CompanyDetailsComponent },
       { path: 'categories', component: CategoryManagementComponent },
       { path: 'users', component: UsersManagementComponent },
     ],

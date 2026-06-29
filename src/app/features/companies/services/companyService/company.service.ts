@@ -12,7 +12,8 @@ import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
 
 
 export class CompanyService {
-  private companyUrl = '';
+
+  private readonly companyUrl;
 
   constructor(private sharedService: SharedService, private http: HttpClient) {
     this.companyUrl = this.sharedService.publicUrl + '/company';
@@ -23,11 +24,15 @@ export class CompanyService {
   }
 
   getAllCompaniesAsAdmin(): Observable<CompanyResponse[]> {
-    return this.http.get<CompanyResponse[]>(`${this.companyUrl}/op`);
+    return this.http.get<CompanyResponse[]>(`${this.companyUrl}`);
   }
 
   getCompanyById(id: number): Observable<CompanyResponse> {
     return this.http.get<CompanyResponse>(`${this.companyUrl}/${id}`);
+  }
+
+  getCompanyDetailsByIdAsAdmin(id: number): Observable<CompanyResponse> {
+    return this.http.get<CompanyResponse>(`${this.companyUrl}/details/${id}`);
   }
 
   createCompany(payload: CompanyRequest): Observable<CompanyResponse> {

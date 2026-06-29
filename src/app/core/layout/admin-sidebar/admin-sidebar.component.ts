@@ -22,14 +22,14 @@ export class AdminSidebarComponent {
       icon: 'box'
     },
     {
-      label: 'Categories',
-      path: '/categories',
-      icon: 'grid'
-    },
-    {
       label: 'Companies',
       path: '/companies',
       icon: 'building'
+    },
+    {
+      label: 'Categories',
+      path: '/categories',
+      icon: 'grid'
     },
     {
       label: 'Users',

@@ -1,30 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import {DashboardService} from '../../services/dashboardService/dashboard.service';
+import {AdminDashboardResponse} from '../../models/dashboardDTO/adminDashboardResponse.model';
 
-import { forkJoin } from 'rxjs';
-import { ProductService } from '../../../products/services/productService/product.service';
-import { CompanyService } from '../../../companies/services/companyService/company.service';
-import { UserService } from '../../../users/services/userService/user.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, RouterLink],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
+
   stats: Array<{ label: string; value: string; icon: string }> = [];
-  recentProducts: any[] = [];
-  recentUsers: any[] = [];
-  recentCompanies: any[] = [];
+
+  data!: AdminDashboardResponse;
+
   loading = false;
 
-  constructor(
-    private productService: ProductService,
-    private companyService: CompanyService,
-    private userService: UserService
-  ) {}
+  constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -32,32 +28,30 @@ export class DashboardComponent implements OnInit {
 
   private loadDashboard() {
     this.loading = true;
-    forkJoin({
-      products: this.productService.getProductsAsAdmin(),
-      companies: this.companyService.getAllCompanies(),
-      users: this.userService.getAllUsers()
-    }).subscribe({
-      next: ({ products, companies, users }) => {
+
+    this.dashboardService.getDashboard().subscribe({
+      next: (res) => {
+        this.data = res;
+
         this.stats = [
-          { label: 'Products', value: this.formatNumber(products.length), icon: '📦' },
-          { label: 'Companies', value: this.formatNumber(companies.length), icon: '🏢' },
-          { label: 'Users', value: this.formatNumber(users.length), icon: '👥' }
+          { label: 'Users', value: this.format(res.totalUsers), icon: '👥' },
+          { label: 'Companies', value: this.format(res.totalCompanies), icon: '🏢' },
+          { label: 'Verified companies', value: this.format(res.totalVerifiedCompanies), icon: '✅' },
+          { label: 'Products', value: this.format(res.totalProducts), icon: '📦' },
+          { label: 'Reviews', value: this.format(res.totalReviews), icon: '⭐' },
+          { label: 'Pending approval products', value: this.format(res.totalPendingApprovals), icon: '⏳' },
         ];
 
-        this.recentProducts = products.slice(-5).reverse();
-        this.recentCompanies = companies.slice(-5).reverse();
-        this.recentUsers = users.slice(-5).reverse();
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load dashboard data', err);
+        console.error('Dashboard error', err);
         this.loading = false;
       }
     });
   }
 
-  private formatNumber(n: number) {
+  private format(n: number): string {
     return n.toLocaleString();
   }
-
 }

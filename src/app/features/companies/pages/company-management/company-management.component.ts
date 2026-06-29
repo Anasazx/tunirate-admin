@@ -32,12 +32,10 @@ export class CompanyManagementComponent implements OnInit {
   constructor(private companyService: CompanyService) {}
 
 ngOnInit(): void {
-
-  this.load();
-
+  this.loadCompanies();
 }
 
-load() {
+loadCompanies() {
   this.loading = true;
 
   this.companyService.getAllCompaniesAsAdmin().subscribe({
@@ -97,7 +95,7 @@ load() {
 
     request$.subscribe({
       next: () => {
-        this.load();
+        this.loadCompanies();
         this.closeModal();
       },
       error: (err) => {
@@ -114,7 +112,7 @@ load() {
     if (!confirm('Delete this company?')) return;
 
     this.companyService.deleteCompany(id).subscribe({
-      next: () => this.load(),
+      next: () => this.loadCompanies(),
       error: (err) => {
         console.error(err);
         this.error = 'Failed to delete company';

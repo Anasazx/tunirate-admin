@@ -1,1 +1,273 @@
-<p>company-details works!</p>
+<div class="max-w-5xl mx-auto p-6" *ngIf="company; else loadingTpl">
+  <div class="flex items-center gap-2">
+
+    <button
+      [routerLink]="['/companies', id]"
+      (click)="$event.stopPropagation()"
+      class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100">
+      Edit
+    </button>
+
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 text-slate-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor">
+
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 5l7 7-7 7"/>
+
+    </svg>
+
+  </div>
+  <!-- HEADER -->
+  <div class="flex items-start justify-between mb-6">
+
+    <div>
+
+      <h1 class="text-3xl font-bold text-slate-900">
+        {{ company.name }}
+      </h1>
+
+      <div class="flex items-center gap-2 mt-2 text-sm text-slate-500">
+
+        <span *ngIf="company.verified"
+              class="text-green-600 font-medium">
+          ✓ Verified Company
+        </span>
+
+        <span *ngIf="!company.verified"
+              class="text-slate-400">
+          Not verified
+        </span>
+
+      </div>
+
+    </div>
+
+    <span class="text-xs bg-slate-100 px-3 py-1 rounded-full">
+      ID: {{ company.id }}
+    </span>
+
+  </div>
+
+  <!-- HERO -->
+  <div class="rounded-2xl overflow-hidden border bg-slate-50 mb-6">
+
+    <img
+      *ngIf="company.bannerUrl"
+      [src]="sharedService.getImageUrl(company.bannerUrl)"
+      class="w-full h-60 object-cover"
+    />
+
+    <div *ngIf="!company.bannerUrl"
+         class="h-60 flex items-center justify-center text-slate-400">
+      No banner image
+    </div>
+
+  </div>
+
+  <!-- CONTENT GRID -->
+  <div class="grid md:grid-cols-3 gap-6">
+
+    <!-- LEFT -->
+    <div class="md:col-span-2 space-y-6">
+
+      <!-- DESCRIPTION -->
+      <div class="bg-white border rounded-2xl p-5">
+
+        <h2 class="font-semibold text-lg mb-3">
+          Description
+        </h2>
+
+        <p class="text-slate-600 leading-relaxed">
+          {{ company.description || 'No description available.' }}
+        </p>
+
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="bg-white border rounded-2xl p-5">
+
+        <h2 class="font-semibold text-lg mb-4">
+          Members
+          <span class="text-sm text-slate-400">
+            ({{ company.members?.length || 0 }})
+          </span>
+        </h2>
+
+        <div *ngIf="company.members?.length; else noMembers"
+             class="space-y-3">
+
+          <div *ngFor="let m of company.members"
+               class="flex items-center justify-between border rounded-xl p-3 hover:bg-slate-50">
+
+            <div>
+
+              <div class="font-medium">
+                {{ m.user.name }}
+              </div>
+
+              <div class="text-xs text-slate-500">
+                {{ m.companyRole }}
+              </div>
+
+            </div>
+
+            <div class="text-xs text-slate-400">
+              {{ m.joinedAt | date:'mediumDate' }}
+            </div>
+
+          </div>
+
+        </div>
+
+        <ng-template #noMembers>
+          <div class="text-sm text-slate-400">
+            No members in this company.
+          </div>
+        </ng-template>
+
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="bg-white border rounded-2xl p-5">
+
+        <h2 class="font-semibold text-lg mb-4">
+          Products
+          <span class="text-sm text-slate-400">
+      ({{ company.products?.length || 0 }})
+    </span>
+        </h2>
+
+
+
+        <div *ngIf="company.products?.length; else noProducts"
+             class="space-y-3">
+
+          <div
+            *ngFor="let p of company.products"
+            [routerLink]="['/products/details', p.id]"
+            class="flex items-center justify-between rounded-xl border p-3 hover:bg-slate-50 hover:shadow-sm cursor-pointer transition">
+
+            <div class="flex items-center gap-4">
+
+              <img
+                [src]="sharedService.getImageUrl(p.imageUrl)"
+                class="h-14 w-14 rounded-lg object-cover border"
+              />
+
+              <div>
+
+                <div class="font-semibold text-slate-800">
+                  {{ p.name }}
+                </div>
+
+                <div class="mt-1 text-xs text-slate-500">
+                  {{ p.category || 'No category specified.' }}
+                </div>
+
+                <span
+                  class="mt-2 inline-block rounded-full px-2 py-0.5 text-[11px]"
+                  [ngClass]="{
+          'bg-green-100 text-green-700': p.status === 'PUBLISHED',
+          'bg-yellow-100 text-yellow-700': p.status === 'PENDING_REVIEW',
+          'bg-red-100 text-red-700': p.status === 'REJECTED',
+          'bg-gray-100 text-gray-700': p.status === 'DRAFT',
+          'bg-slate-200 text-slate-700': p.status === 'ARCHIVED'
+        }">
+
+        {{ p.status.replace('_',' ') }}
+
+      </span>
+
+              </div>
+
+            </div>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"/>
+
+            </svg>
+
+          </div>
+
+        </div>
+
+        <ng-template #noProducts>
+
+          <div class="text-sm text-slate-400">
+            This company has no products.
+          </div>
+
+        </ng-template>
+
+      </div>
+
+
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="space-y-6">
+
+      <!-- LOGO -->
+      <div class="bg-white border rounded-2xl p-5 text-center">
+
+        <img
+          *ngIf="company.logoUrl"
+          [src]="sharedService.getImageUrl(company.logoUrl)"
+          class="w-20 h-20 mx-auto rounded-full object-cover border"
+        />
+
+        <div *ngIf="!company.logoUrl"
+             class="w-20 h-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+          N/A
+        </div>
+
+        <div class="mt-3 text-sm text-slate-500">
+          Company Logo
+        </div>
+
+      </div>
+
+      <!-- QUICK INFO -->
+      <div class="bg-white border rounded-2xl p-5 space-y-3 text-sm">
+
+        <div class="flex justify-between">
+          <span class="text-slate-400">Verified</span>
+          <span>{{ company.verified ? 'Yes' : 'No' }}</span>
+        </div>
+
+        <div class="flex justify-between">
+          <span class="text-slate-400">Members</span>
+          <span>{{ company.members?.length || 0 }}</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- LOADING -->
+<ng-template #loadingTpl>
+  <div class="h-[60vh] flex items-center justify-center text-slate-400">
+    Loading company details...
+  </div>
+</ng-template>

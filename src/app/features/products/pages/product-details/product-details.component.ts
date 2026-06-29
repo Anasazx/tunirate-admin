@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, RouterLink} from '@angular/router';
 import { DetailedProductResponse } from '../../models/productDTO/detailedProductResponse.model';
 import { ProductService } from '../../services/productService/product.service';
 import { SharedService } from '../../../../core/services/sharedService/shared.service';
@@ -8,7 +8,7 @@ import { SharedService } from '../../../../core/services/sharedService/shared.se
 @Component({
   selector: 'app-product-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.css'
 })
@@ -17,6 +17,7 @@ export class ProductDetailsComponent implements OnInit {
   product: DetailedProductResponse | null = null;
   loading = false;
   error: string | null = null;
+  id: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -25,14 +26,14 @@ export class ProductDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.id = Number(this.route.snapshot.paramMap.get('id'));
 
-    if (!id) {
+    if (!this.id) {
       this.error = 'Invalid product id';
       return;
     }
 
-    this.loadProduct(id);
+    this.loadProduct(this.id);
   }
 
   loadProduct(id: number) {
