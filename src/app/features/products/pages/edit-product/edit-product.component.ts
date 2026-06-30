@@ -142,7 +142,8 @@ export class EditProductComponent implements OnInit {
       subcategoryId: this.selectedSubcategoryId
         ? String(this.selectedSubcategoryId)
         : (this.product.category ? String(this.product.category) : ''),
-      companyId: this.product.companyId
+      companyId: this.product.companyId,
+      status: null
     };
 
     this.productService.updateProductAsAdmin(this.product.id, payload)

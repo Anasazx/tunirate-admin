@@ -44,4 +44,10 @@ export class ProductService {
     return this.http.get<DetailedProductResponse>(`${this.productUrl.toString()}/op/${productId}/details`);
   }
 
+  //Admin method
+  archiveProductAsAdmin(productId: number): Observable<void> {
+    return this.http.post<void>(`${this.productUrl}/op/${productId}/archive`, {});
+  }
+
+
 }

@@ -18,91 +18,30 @@ export class CompanyManagementComponent implements OnInit {
   companies: CompanyResponse[] = [];
   loading = false;
   error: string | null = null;
+  searchTerm: string = '';
+  filteredCompanies: CompanyResponse[] = [];
 
-
-  showModal = false;
-  editId: number | null = null;
-
-  form: CompanyRequest = {
-    name: '',
-    description: null,
-    verified: false
-  };
 
   constructor(private companyService: CompanyService) {}
 
-ngOnInit(): void {
-  this.loadCompanies();
-}
 
-loadCompanies() {
-  this.loading = true;
-
-  this.companyService.getAllCompaniesAsAdmin().subscribe({
-    next: (res) => {
-      this.companies = res;
-      this.filteredCompanies = res; // IMPORTANT FIX
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error(err);
-      this.error = 'Failed to load companies';
-      this.loading = false;
-    }
-  });
-}
-  // OPEN CREATE
-  openCreateModal() {
-    this.editId = null;
-    this.form = { name: '', description: null, verified: false };
-    this.showModal = true;
+  ngOnInit(): void {
+    this.loadCompanies();
   }
 
-  // OPEN EDIT
-  openEdit(c: CompanyResponse) {
-    this.editId = c.id;
-    this.form = {
-      name: c.name,
-      description: c.description ?? null,
-      verified: c.verified ?? false
-    };
-    this.showModal = true;
-  }
+  loadCompanies() {
+    this.loading = true;
 
-  // CLOSE MODAL
-  closeModal() {
-    this.showModal = false;
-    this.editId = null;
-    this.form = {
-      name: '',
-      description: null,
-      verified: false
-    };
-  }
-
-  // SAVE
-  save() {
-    this.error = null;
-
-    if (!this.form.name?.trim()) {
-      this.error = 'Name is required';
-      return;
-    }
-
-    const request$ = this.editId
-      ? this.companyService.updateCompany(this.editId, this.form)
-      : this.companyService.createCompany(this.form);
-
-    request$.subscribe({
-      next: () => {
-        this.loadCompanies();
-        this.closeModal();
+    this.companyService.getAllCompaniesAsAdmin().subscribe({
+      next: (res) => {
+        this.companies = res;
+        this.filteredCompanies = res; // IMPORTANT FIX
+        this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        this.error = this.editId
-          ? 'Failed to update company'
-          : 'Failed to create company';
+        this.error = 'Failed to load companies';
+        this.loading = false;
       }
     });
   }
@@ -120,31 +59,20 @@ loadCompanies() {
     });
   }
 
-  searchTerm: string = '';
+  filterCompanies(): void {
 
-  filteredCompanies: any[] = [];
+    const term = this.searchTerm.toLowerCase().trim();
 
+    if (!term) {
+      this.filteredCompanies = this.companies;
+      return;
+    }
 
-
-filterCompanies(): void {
-
-  const term = this.searchTerm.toLowerCase().trim();
-
-  if (!term) {
-
-    this.filteredCompanies = this.companies;
-
-    return;
+    this.filteredCompanies = this.companies.filter(c =>
+      c.name.toLowerCase().includes(term)
+    );
 
   }
-
-  this.filteredCompanies = this.companies.filter(c =>
-
-    c.name.toLowerCase().includes(term)
-
-  );
-
-}
 
 
 }

@@ -1,198 +1,237 @@
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-4xl mx-auto">
 
-<!-- Company -->
-<div class="bg-white border rounded-lg p-6">
+  <div class="bg-white rounded-xl border shadow-sm p-8">
 
-  <h2 class="text-xl font-semibold mb-4">
-    {{ isEditMode ? 'Edit Company' : 'Create Company' }}
-  </h2>
+    <h2 class="text-2xl font-bold mb-8">
+      Edit Company
+    </h2>
 
-  <div class="space-y-5">
+    <div *ngIf="message"
 
-    <!-- NAME -->
-    <div>
-      <label class="block text-sm mb-1">Name</label>
-      <input [(ngModel)]="form.name"
-             class="w-full border rounded px-3 py-2">
+         class="mb-6 px-4 py-3 rounded-lg text-sm font-medium border"
+
+         [ngClass]="{
+
+       'bg-green-50 text-green-700 border-green-200': !isError,
+
+       'bg-red-50 text-red-700 border-red-200': isError
+
+     }">
+
+      {{ message }}
+
     </div>
 
-    <!-- DESCRIPTION -->
-    <div>
-      <label class="block text-sm mb-1">Description</label>
-      <textarea [(ngModel)]="form.description"
-                rows="4"
-                class="w-full border rounded px-3 py-2"></textarea>
-    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-    <!-- VERIFIED -->
-    <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" [(ngModel)]="form.verified">
-      Verified
-    </label>
+      <!-- Name -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-2">
+          Company Name
+        </label>
 
-    <!-- LOGO UPLOAD -->
-    <div *ngIf="isEditMode" class="border rounded p-4 space-y-3">
-      <p class="text-sm font-medium">Logo</p>
-      <div *ngIf="form.logoUrl; else noLogo">
-        <img
-          [src]="this.sharedService.getImageUrl(form.logoUrl)"
-          class="h-16 w-16 object-cover rounded border"
-        />
+        <input
+          [(ngModel)]="form.name"
+          class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
 
-      <ng-template #noLogo>
-        <p class="text-xs text-gray-400">No logo uploaded</p>
-      </ng-template>
-      <input type="file" (change)="onLogoSelected($event)" />
-      <button *ngIf="form.logoUrl"
-              (click)="deleteLogo()"
-              class="text-sm text-red-600 hover:underline">
-        Remove logo
-      </button>
-    </div>
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-2">
+          Description
+        </label>
 
-    <!-- BANNER UPLOAD -->
-    <div *ngIf="isEditMode" class="border rounded p-4 space-y-3">
-
-      <p class="text-sm font-medium">Banner</p>
-
-      <div *ngIf="form.bannerUrl; else noBanner">
-        <img
-          [src]="this.sharedService.getImageUrl(form.bannerUrl)"
-          class="h-24 w-full object-cover rounded border"
-        />
+        <textarea
+          [(ngModel)]="form.description"
+          rows="5"
+          class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </textarea>
       </div>
 
-      <ng-template #noBanner>
-        <p class="text-xs text-gray-400">No banner uploaded</p>
-      </ng-template>
+      <!-- Phone -->
+      <div>
+        <label class="block text-sm font-medium mb-2">
+          Phone Number
+        </label>
 
-      <input type="file" (change)="onBannerSelected($event)" />
+        <input
+          [(ngModel)]="form.phoneNumber"
+          class="w-full border rounded-lg px-4 py-2">
+      </div>
 
-      <button *ngIf="form.bannerUrl"
-              (click)="deleteBanner()"
-              class="text-sm text-red-600 hover:underline">
-        Remove banner
-      </button>
+      <!-- Website -->
+      <div>
+        <label class="block text-sm font-medium mb-2">
+          Website
+        </label>
 
-    </div>
+        <input
+          [(ngModel)]="form.websiteUrl"
+          placeholder="https://example.com"
+          class="w-full border rounded-lg px-4 py-2">
+      </div>
 
-    <!-- ACTIONS -->
-    <div class="flex gap-2 pt-2">
+      <!-- Address -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-2">
+          Address
+        </label>
 
-      <button (click)="save()"
-              class="bg-green-600 text-white px-4 py-2 rounded">
-        Save
-      </button>
+        <input
+          [(ngModel)]="form.address"
+          class="w-full border rounded-lg px-4 py-2">
+      </div>
 
-      <button (click)="cancel()"
-              class="border px-4 py-2 rounded">
-        Cancel
-      </button>
+      <!-- Country -->
+      <div>
+        <label class="block text-sm font-medium mb-2">
+          Country
+        </label>
 
-    </div>
+        <select
+          [(ngModel)]="form.country"
+          class="w-full border rounded-lg px-4 py-2">
 
-  </div>
-</div>
+          <option [ngValue]="null">Select country</option>
 
-  <!-- Members -->
-  <div class="bg-white border rounded-lg p-6">
+          <option *ngFor="let c of countries" [ngValue]="c">
+            {{ c }}
+          </option>
 
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold">Members</h3>
+        </select>
+      </div>
 
-      <button (click)="openMemberModal()"
-              class="text-sm px-3 py-2 border rounded">
-        + Add Member
-      </button>
-    </div>
+      <!-- Industry -->
+      <div>
+        <label class="block text-sm font-medium mb-2">
+          Industry
+        </label>
+        <select
+          [(ngModel)]="form.industry"
+          class="w-full border rounded-lg px-4 py-2">
+          <option [ngValue]="null">Select industry</option>
+          <option *ngFor="let i of industries" [ngValue]="i">
+            {{ i }}
+          </option>
+        </select>
+      </div>
 
-    <div class="divide-y">
 
-      <div *ngFor="let m of members"
-           class="flex items-center justify-between py-3">
+      <!-- Status -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-2">
+          Company Status
+        </label>
 
-        <div>
-          <div class="font-medium">{{ m.user.name }}</div>
-          <div class="text-sm text-gray-500">{{ m.user.email }}</div>
-        </div>
+        <select
+          [(ngModel)]="form.status"
+          class="w-full border rounded-lg px-4 py-2">
 
-        <div class="flex items-center gap-4">
+          <option value="PENDING">Pending</option>
+          <option value="ACTIVE">Active</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="SUSPENDED">Suspended</option>
+          <option value="ARCHIVED">Archived</option>
 
-          <select
-            [ngModel]="m.companyRole"
-            (ngModelChange)="updateMemberRole(m, $event)"
-            class="border rounded px-2 py-1 text-sm">
-            <option value="WORKER">WORKER</option>
-            <option value="HEAD">HEAD</option>
-          </select>
-
-          <button class="text-red-600 text-sm"
-                  (click)="removeMember(m.user.id)">
-            Remove
-          </button>
-
-        </div>
-
+        </select>
       </div>
 
     </div>
 
-  </div>
-</div>
+    <!-- Images -->
+    <div class="grid md:grid-cols-2 gap-6 mt-8">
 
-<!-- MEMBER MODAL -->
-<div *ngIf="showMemberModal"
-     class="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <!-- Logo -->
+      <div class="border rounded-xl p-5">
 
-  <div class="bg-white w-full max-w-md p-6 rounded-lg">
+        <h3 class="font-semibold mb-4">
+          Company Logo
+        </h3>
 
-    <h3 class="text-lg font-semibold mb-3">Add Member</h3>
+        <div class="mb-4 flex justify-center">
 
-    <!-- ROLE SELECT -->
-    <div class="mb-3">
-      <label class="text-sm font-medium">Role</label>
+          <img
+            *ngIf="company?.logoUrl; else noLogo"
+            [src]="sharedService.getImageUrl(company.logoUrl)"
+            class="h-28 w-28 rounded-full object-cover border">
 
-      <select [(ngModel)]="selectedRole"
-              class="w-full border px-3 py-2 rounded mt-1">
-        <option value="WORKER">WORKER</option>
-        <option value="HEAD">HEAD</option>
-      </select>
-    </div>
+          <ng-template #noLogo>
+            <div class="h-28 w-28 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+              No Logo
+            </div>
+          </ng-template>
 
-    <!-- SEARCH INPUT -->
-    <input [(ngModel)]="searchTerm"
-           (input)="onSearch()"
-           placeholder="Search user..."
-           class="w-full border px-3 py-2 rounded mb-3">
-
-    <!-- RESULTS -->
-    <div class="max-h-60 overflow-auto border rounded">
-
-      <div *ngFor="let u of searchResults"
-           class="flex justify-between p-2 border-b">
-
-        <div>
-          <div class="font-medium">{{ u.name }}</div>
-          <div class="text-xs text-gray-500">{{ u.email }}</div>
         </div>
 
-        <button (click)="addMember(u.id)"
-                class="text-blue-600 text-sm">
-          Add
+        <input
+          type="file"
+          class="w-full"
+          (change)="onLogoSelected($event)">
+
+        <button
+          *ngIf="company?.logoUrl"
+          (click)="deleteLogo()"
+          class="mt-3 text-red-600 hover:underline text-sm">
+          Remove Logo
+        </button>
+
+      </div>
+
+      <!-- Banner -->
+      <div class="border rounded-xl p-5">
+
+        <h3 class="font-semibold mb-4">
+          Company Banner
+        </h3>
+
+        <div class="mb-4">
+
+          <img
+            *ngIf="company?.bannerUrl; else noBanner"
+            [src]="sharedService.getImageUrl(company.bannerUrl)"
+            class="w-full h-40 rounded-lg object-cover border">
+
+          <ng-template #noBanner>
+            <div class="w-full h-40 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+              No Banner
+            </div>
+          </ng-template>
+
+        </div>
+
+        <input
+          type="file"
+          class="w-full"
+          (change)="onBannerSelected($event)">
+
+        <button
+          *ngIf="company?.bannerUrl"
+          (click)="deleteBanner()"
+          class="mt-3 text-red-600 hover:underline text-sm">
+          Remove Banner
         </button>
 
       </div>
 
     </div>
 
-    <!-- FOOTER -->
-    <div class="flex justify-end mt-4">
-      <button (click)="closeMemberModal()"
-              class="px-3 py-1 border rounded">
-        Close
+    <!-- Buttons -->
+    <div class="flex justify-end gap-3 mt-10">
+
+      <button
+        (click)="cancel()"
+        class="px-5 py-2 border rounded-lg hover:bg-gray-100">
+        Cancel
       </button>
+
+      <button
+        (click)="save()"
+        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+        Save Changes
+      </button>
+
     </div>
 
   </div>
+
 </div>

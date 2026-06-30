@@ -1,125 +1,105 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
-import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
-import { CompanyMemberResponse } from '../../models/companyMemberDTO/CompanyMemberResponse.model';
-import { CompanyRole } from '../../enums/companyRole.enum.model';
-import { CompanyService } from '../../services/companyService/company.service';
-import { CompanyMemberService } from '../../../../core/services/companyMemberService/company-member.service';
-import { UserService } from '../../../users/services/userService/user.service';
-import { SharedService } from '../../../../core/services/sharedService/shared.service';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
+import { SharedService } from '../../../../core/services/sharedService/shared.service';
+import { CompanyService } from '../../services/companyService/company.service';
+
+import { CompanyRequest } from '../../models/companyDTO/companyRequest.model';
+import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
+import {Country} from '../../../../core/model/enums/country.enum.model';
+import {Industry} from '../../../../core/model/enums/industry.enum.model';
 
 @Component({
   selector: 'app-edit-company',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './edit-company.component.html',
   styleUrl: './edit-company.component.css'
 })
 export class EditCompanyComponent implements OnInit {
 
-  form: CompanyResponse = {
-    id: 0,
+  companyId!: number;
+
+  company!: CompanyResponse;
+
+  countries = Object.values(Country);
+  industries = Object.values(Industry);
+
+  form: CompanyRequest = {
     name: '',
-    description: null,
-    logoUrl: undefined,
-    bannerUrl: undefined,
-    verified: false
+    description: '',
+    phoneNumber: '',
+    websiteUrl: '',
+    address: '',
+    country: Country.TUNISIA,
+    industry: Industry.OTHER,
+    status: null
   };
 
-  companyId: number | null = null;
-  isEditMode = false;
-
-  members: CompanyMemberResponse[] = [];
-  loadingMembers = false;
-
-  logoFile: File | null = null;
-  bannerFile: File | null = null;
-
-  showMemberModal = false;
-  searchTerm = '';
-  searchResults: any[] = [];
-
-  selectedRole: CompanyRole = CompanyRole.WORKER;
-
   constructor(
-    private route: ActivatedRoute,
+    public sharedService: SharedService,
     private companyService: CompanyService,
-    private companyMemberService: CompanyMemberService,
-    private userService: UserService,
-    private router: Router,
-    public sharedService: SharedService
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (!id) return;
-
-      this.companyId = Number(id);
-      this.isEditMode = true;
-
-      this.loadCompany(this.companyId);
-      this.loadCompanyMembers(this.companyId);
-    });
+    this.companyId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadCompany();
   }
 
-  // ---------------- COMPANY ----------------
+  loadCompany() {
+    this.companyService
+      .getCompanyDetailsByIdAsAdmin(this.companyId)
+      .subscribe(company => {
 
-  loadCompany(companyId: number) {
-    this.companyService.getCompanyById(companyId)
-      .subscribe((data: CompanyResponse) => {
+        this.company = company;
+
         this.form = {
-          id: data.id,
-          name: data.name,
-          description: data.description ?? '',
-          logoUrl: data.logoUrl,
-          bannerUrl: data.bannerUrl,
-          verified: data.verified ?? false
+          name: company.name,
+          description: company.description,
+          phoneNumber: company.phoneNumber,
+          websiteUrl: company.websiteUrl,
+          address: company.address,
+          country: company.country,
+          industry: company.industry,
+          status: company.status
         };
+
       });
   }
 
-  reloadCompany() {
-    if (!this.companyId) return;
-    this.loadCompany(this.companyId);
-  }
+  message: string | null = null;
+
+  isError: boolean = false;
 
   save() {
-    const req = this.isEditMode && this.companyId
-      ? this.companyService.updateCompany(this.companyId, this.form)
-      : this.companyService.createCompany(this.form);
+    this.companyService
+      .updateCompany(this.companyId, this.form)
+      .subscribe(updated => {
 
-    req.subscribe((savedCompany: any) => {
-      const id = savedCompany?.id ?? this.companyId;
+        this.company = updated;
 
-      if (!id) {
-        this.router.navigate(['/admin/companies']);
-        return;
-      }
-
-      const uploads = [];
-
-      if (this.logoFile) {
-        uploads.push(this.companyService.uploadLogo(id, this.logoFile));
-      }
-
-      if (this.bannerFile) {
-        uploads.push(this.companyService.uploadBanner(id, this.bannerFile));
-      }
-
-      if (uploads.length === 0) {
-        this.router.navigate(['/admin/companies']);
-        return;
-      }
-
-      forkJoin(uploads).subscribe({
-        next: () => this.router.navigate(['/admin/companies']),
-        error: () => this.router.navigate(['/admin/companies'])
+        this.loadCompany();
       });
+
+
+
+    this.companyService.updateCompany(this.companyId, this.form).subscribe({
+      next: () => {
+        this.message = 'Company updated successfully';
+        this.isError = false;
+        setTimeout(() => this.message = null, 2500);
+      },
+
+      error: () => {
+        this.message = 'Something went wrong, please try again';
+        this.isError = true;
+        setTimeout(() => this.message = null, 2500);
+      }
+
     });
   }
 
@@ -127,102 +107,37 @@ export class EditCompanyComponent implements OnInit {
     this.router.navigate(['/admin/companies']);
   }
 
-  // ---------------- MEMBERS ----------------
-
-  loadCompanyMembers(companyId: number) {
-    this.loadingMembers = true;
-
-    this.companyMemberService.getMembersByCompanyId(companyId)
-      .subscribe({
-        next: (res) => {
-          this.members = res;
-          this.loadingMembers = false;
-        },
-        error: () => {
-          this.members = [];
-          this.loadingMembers = false;
-        }
-      });
-  }
-
-  openMemberModal() {
-    if (!this.companyId) return;
-
-    this.showMemberModal = true;
-    this.searchTerm = '';
-    this.searchResults = [];
-    this.selectedRole = CompanyRole.WORKER;
-  }
-
-  closeMemberModal() {
-    this.showMemberModal = false;
-  }
-
-  onSearch() {
-    if (this.searchTerm.trim().length < 2) {
-      this.searchResults = [];
-      return;
-    }
-
-    this.userService.searchUsers(this.searchTerm)
-      .subscribe(res => this.searchResults = res);
-  }
-
-  addMember(userId: number) {
-    if (!this.companyId) return;
-
-    this.companyMemberService.assignMemberToCompany({
-      userId,
-      companyId: this.companyId
-    }).subscribe(() => {
-      this.loadCompanyMembers(this.companyId!);
-      this.closeMemberModal();
-    });
-  }
-
-  removeMember(userId: number) {
-    if (!this.companyId) return;
-
-    this.companyMemberService.removeMemberFromCompany(userId, this.companyId)
-      .subscribe(() => this.loadCompanyMembers(this.companyId!));
-  }
-
-  updateMemberRole(member: CompanyMemberResponse, role: CompanyRole) {
-    if (!this.companyId) return;
-
-    this.companyMemberService.updateRole({
-      userId: member.user.id,
-      companyId: this.companyId,
-      companyRole: role
-    }).subscribe({
-      next: (updated) => {
-        member.companyRole = updated.companyRole;
-      },
-      error: () => this.loadCompanyMembers(this.companyId!)
-    });
-  }
-
-  // ---------------- IMAGES ----------------
-
   onLogoSelected(event: any) {
-    this.logoFile = event.target.files?.[0] ?? null;
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    this.companyService
+      .uploadLogo(this.companyId, file)
+      .subscribe(() => this.loadCompany());
   }
 
   onBannerSelected(event: any) {
-    this.bannerFile = event.target.files?.[0] ?? null;
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    this.companyService
+      .uploadBanner(this.companyId, file)
+      .subscribe(() => this.loadCompany());
   }
 
   deleteLogo() {
-    if (!this.companyId) return;
-
-    this.companyService.deleteLogo(this.companyId)
-      .subscribe(() => this.reloadCompany());
+    this.companyService
+      .deleteLogo(this.companyId)
+      .subscribe(() => this.loadCompany());
   }
 
   deleteBanner() {
-    if (!this.companyId) return;
-
-    this.companyService.deleteBanner(this.companyId)
-      .subscribe(() => this.reloadCompany());
+    this.companyService
+      .deleteBanner(this.companyId)
+      .subscribe(() => this.loadCompany());
   }
 }

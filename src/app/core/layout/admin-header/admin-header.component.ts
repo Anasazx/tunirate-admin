@@ -20,6 +20,6 @@ export class AdminHeaderComponent {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/auth/login']);
   }
 }

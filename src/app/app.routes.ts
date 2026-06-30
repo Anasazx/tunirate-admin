@@ -12,17 +12,14 @@ import { RegisterComponent } from './features/auth/pages/register/register.compo
 import { EditProductComponent } from './features/products/pages/edit-product/edit-product.component';
 import {ProductDetailsComponent} from './features/products/pages/product-details/product-details.component';
 import {CompanyDetailsComponent} from './features/companies/pages/company-details/company-details.component';
+import {NewCompanyComponent} from './features/companies/pages/new-company/new-company.component';
 
 
 export const routes: Routes = [
-  {
-    path: 'auth',
-    component: LoginComponent,
-    children: [
-      { path: 'login', component: LoginComponent },
-      { path: 'register', component: RegisterComponent },
-    ],
-  },
+
+  { path: 'auth/login', component: LoginComponent },
+  { path: 'auth/register', component: RegisterComponent },
+
   {
     path: '',
     component: AdminMainComponent,
@@ -33,6 +30,7 @@ export const routes: Routes = [
       { path: 'products/details/:id', component: ProductDetailsComponent },
       { path: 'products/:id', component: EditProductComponent },
       { path: 'companies', component: CompanyManagementComponent },
+      { path: 'companies/new', component: NewCompanyComponent },
       { path: 'companies/:id', component: EditCompanyComponent },
       { path: 'companies/details/:id', component: CompanyDetailsComponent },
       { path: 'categories', component: CategoryManagementComponent },

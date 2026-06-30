@@ -4,6 +4,7 @@ import {ActivatedRoute, RouterLink} from '@angular/router';
 import { CompanyService } from '../../services/companyService/company.service';
 import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
 import { SharedService } from '../../../../core/services/sharedService/shared.service';
+import {CompanyStatus} from '../../enums/companyStatus.enum.model';
 
 @Component({
   selector: 'app-company-details',
@@ -54,4 +55,5 @@ export class CompanyDetailsComponent implements OnInit {
     });
   }
 
+  protected readonly CompanyStatus = CompanyStatus;
 }

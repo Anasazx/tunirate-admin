@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+
 import { ProductService } from '../../services/productService/product.service';
 import { ProductResponse } from '../../models/productDTO/productResponse.model';
+import {ProductStatus} from '../../enums/productStatus.enum.model';
 
 @Component({
   selector: 'app-products-management',
@@ -24,6 +26,9 @@ export class ProductsManagementComponent implements OnInit {
   // ===== UI STATE =====
   loading = false;
   error: string | null = null;
+
+  // ===== Archive STATE =====
+  productToArchive: ProductResponse | null = null;
 
   constructor(private productService: ProductService) {}
 
@@ -71,8 +76,33 @@ export class ProductsManagementComponent implements OnInit {
     });
   }
 
-  // ===== DELETE (TEMP LOCAL) =====
-  deleteProduct(id: number): void {
-    this.products = this.products.filter(p => p.id !== id);
+  // ===== Archive FLOW =====
+
+  confirmArchive(product: ProductResponse): void {
+    this.productToArchive = product;
+  }
+
+  cancelArchive(): void {
+    this.productToArchive = null;
+  }
+
+  archiveConfirmed(): void {
+    if (!this.productToArchive) return;
+
+    const id = this.productToArchive.id;
+
+    this.productService.archiveProductAsAdmin(id).subscribe({
+      next: () => {
+        this.products = this.products.map(p =>
+          p.id === id
+            ? { ...p, status: ProductStatus.ARCHIVED }
+            : p
+        );
+        this.productToArchive = null;
+      },
+      error: (err) => {
+        console.error('Archive failed', err);
+      }
+    });
   }
 }

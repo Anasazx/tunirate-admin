@@ -36,7 +36,7 @@ export class DashboardComponent implements OnInit {
         this.stats = [
           { label: 'Users', value: this.format(res.totalUsers), icon: '👥' },
           { label: 'Companies', value: this.format(res.totalCompanies), icon: '🏢' },
-          { label: 'Verified companies', value: this.format(res.totalVerifiedCompanies), icon: '✅' },
+          { label: 'Active companies', value: this.format(res.totalActiveCompanies), icon: '✅' },
           { label: 'Products', value: this.format(res.totalProducts), icon: '📦' },
           { label: 'Reviews', value: this.format(res.totalReviews), icon: '⭐' },
           { label: 'Pending approval products', value: this.format(res.totalPendingApprovals), icon: '⏳' },

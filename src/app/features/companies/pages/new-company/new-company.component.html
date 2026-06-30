@@ -1,0 +1,115 @@
+<div class="max-w-3xl mx-auto bg-white border rounded-xl p-6">
+
+  <h2 class="text-2xl font-bold mb-6">
+    Create New Company
+  </h2>
+
+  <div class="space-y-4">
+
+    <!-- Name -->
+    <div>
+      <label class="text-sm font-medium">Name</label>
+      <input [(ngModel)]="form.name"
+             class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="text-sm font-medium">Description</label>
+      <textarea [(ngModel)]="form.description"
+                class="w-full border rounded px-3 py-2"
+                rows="4"></textarea>
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <label class="text-sm font-medium">Phone</label>
+      <input [(ngModel)]="form.phoneNumber"
+             class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- Website -->
+    <div>
+      <label class="text-sm font-medium">Website</label>
+      <input [(ngModel)]="form.websiteUrl"
+             class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- Address -->
+    <div>
+      <label class="text-sm font-medium">Address</label>
+      <input [(ngModel)]="form.address"
+             class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- Country -->
+    <div>
+      <label class="text-sm font-medium">Country</label>
+      <select
+        [(ngModel)]="form.country"
+        class="w-full border rounded px-3 py-2">
+        <option [ngValue]="null">Select country</option>
+        <option *ngFor="let c of countries" [ngValue]="c">
+          {{ c }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Industry -->
+    <div>
+      <label class="text-sm font-medium">Industry</label>
+
+      <select
+        [(ngModel)]="form.industry"
+        class="w-full border rounded px-3 py-2">
+
+        <option [ngValue]="null">Select industry</option>
+
+        <option *ngFor="let i of industries" [ngValue]="i">
+          {{ i }}
+        </option>
+
+      </select>
+    </div>
+
+    <!-- Status -->
+    <div>
+      <label class="text-sm font-medium">Status</label>
+      <select [(ngModel)]="form.status"
+              class="w-full border rounded px-3 py-2">
+
+        <option [ngValue]="CompanyStatus.PENDING">PENDING</option>
+        <option [ngValue]="CompanyStatus.ACTIVE">ACTIVE</option>
+        <option [ngValue]="CompanyStatus.REJECTED">REJECTED</option>
+        <option [ngValue]="CompanyStatus.SUSPENDED">SUSPENDED</option>
+        <option [ngValue]="CompanyStatus.ARCHIVED">ARCHIVED</option>
+
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Error -->
+  <p *ngIf="error" class="text-red-600 mt-4 text-sm">
+    {{ error }}
+  </p>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-3 mt-6">
+
+    <button (click)="cancel()"
+            class="px-4 py-2 border rounded">
+      Cancel
+    </button>
+
+    <button (click)="save()"
+            [disabled]="loading"
+            class="px-4 py-2 bg-green-600 text-white rounded">
+
+      {{ loading ? 'Creating...' : 'Create Company' }}
+
+    </button>
+
+  </div>
+
+</div>

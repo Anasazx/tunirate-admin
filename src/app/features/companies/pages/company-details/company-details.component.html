@@ -35,14 +35,14 @@
 
       <div class="flex items-center gap-2 mt-2 text-sm text-slate-500">
 
-        <span *ngIf="company.verified"
+        <span *ngIf="company.status == CompanyStatus.ACTIVE"
               class="text-green-600 font-medium">
-          ✓ Verified Company
+          Active Company
         </span>
 
-        <span *ngIf="!company.verified"
+        <span *ngIf="company.status != CompanyStatus.ACTIVE"
               class="text-slate-400">
-          Not verified
+          Still not active
         </span>
 
       </div>
@@ -246,14 +246,25 @@
 
       <!-- QUICK INFO -->
       <div class="bg-white border rounded-2xl p-5 space-y-3 text-sm">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">Status</span>
+          <span
+            class="px-2 py-1 text-xs font-medium rounded-full"
+            [ngClass]="{
+              'bg-yellow-100 text-yellow-700': company.status === 'PENDING',
+              'bg-green-100 text-green-700': company.status === 'ACTIVE',
+              'bg-red-100 text-red-700': company.status === 'REJECTED',
+              'bg-orange-100 text-orange-700': company.status === 'SUSPENDED',
+              'bg-gray-100 text-gray-600': company.status === 'ARCHIVED'
+            }"
+          >
+            {{ company.status }}
+          </span>
 
-        <div class="flex justify-between">
-          <span class="text-slate-400">Verified</span>
-          <span>{{ company.verified ? 'Yes' : 'No' }}</span>
         </div>
 
-        <div class="flex justify-between">
-          <span class="text-slate-400">Members</span>
+        <div class="flex justify-between px-1  ">
+          <span class="text-slate-400 ">Members</span>
           <span>{{ company.members?.length || 0 }}</span>
         </div>
 

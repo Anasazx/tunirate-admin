@@ -8,6 +8,7 @@ import { ProductService } from '../../services/productService/product.service';
 import { CompanyService } from '../../../companies/services/companyService/company.service';
 import { SubcategoryService } from '../../../category/services/subcategoryService/subcategory.service';
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
+import {ProductStatus} from '../../enums/productStatus.enum.model';
 
 
 
@@ -22,6 +23,9 @@ export class NewProductComponent implements OnInit {
   description = '';
   selectedSubcategoryId: number | null = null;
   selectedCompanyId: number | null = null;
+
+  status: ProductStatus | null = null;
+  productStatusValues = Object.values(ProductStatus);
 
   companies: CompanyResponse[] = [];
   subcategories: SubcategoryResponse[] = [];
@@ -71,7 +75,8 @@ export class NewProductComponent implements OnInit {
       name: this.name,
       description: this.description || null,
       subcategoryId: this.selectedSubcategoryId ? String(this.selectedSubcategoryId) : '',
-      companyId: this.selectedCompanyId
+      companyId: this.selectedCompanyId,
+      status: this.status || null
     };
 
     this.saving = true;
