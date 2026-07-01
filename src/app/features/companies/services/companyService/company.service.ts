@@ -43,10 +43,6 @@ export class CompanyService {
     return this.http.put<CompanyResponse>(`${this.companyUrl}/${id}`, payload);
   }
 
-  deleteCompany(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.companyUrl}/${id}`);
-  }
-
   uploadLogo(companyId: number, file: File): Observable<void> {
     const formData = new FormData();
     formData.append('file', file);
@@ -77,5 +73,12 @@ export class CompanyService {
       `${this.companyUrl}/${companyId}/banner`
     );
   }
+
+
+
+  archiveCompany(companyId: number): Observable<void> {
+    return this.http.post<void>(`${this.companyUrl}/${companyId}/archive`, {});
+  }
+
 
 }

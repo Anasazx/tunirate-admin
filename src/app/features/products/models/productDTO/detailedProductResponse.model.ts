@@ -10,7 +10,6 @@ export interface DetailedProductResponse {
   subcategory: string | null;
   companyId: number;
   companyName: string;
-  companyIsVerified: boolean;
   companyLogoUrl: string;
   averageRating: number | null;
   reviewsCount: number;

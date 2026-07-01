@@ -35,7 +35,7 @@ export class CompanyManagementComponent implements OnInit {
     this.companyService.getAllCompaniesAsAdmin().subscribe({
       next: (res) => {
         this.companies = res;
-        this.filteredCompanies = res; // IMPORTANT FIX
+        this.filteredCompanies = res;
         this.loading = false;
       },
       error: (err) => {
@@ -46,15 +46,15 @@ export class CompanyManagementComponent implements OnInit {
     });
   }
 
-  // DELETE
-  delete(id: number) {
-    if (!confirm('Delete this company?')) return;
+  // ARCHIVE
+  archive(id: number) {
+    if (!confirm('Archive this company?')) return;
 
-    this.companyService.deleteCompany(id).subscribe({
+    this.companyService.archiveCompany(id).subscribe({
       next: () => this.loadCompanies(),
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to delete company';
+        this.error = 'Failed to archive company';
       }
     });
   }

@@ -1,128 +1,204 @@
-<div class="max-w-6xl mx-auto p-6" *ngIf="product; else loadingTpl">
-  <div class="flex items-center gap-2">
+<div class="max-w-7xl mx-auto p-8 bg-slate-50 min-h-screen"
+     *ngIf="product; else loadingTpl">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+
+    <div>
+      <p class="text-sm text-slate-500">
+        Products / Details
+      </p>
+
+      <h1 class="text-3xl font-bold text-slate-900 mt-1">
+        {{ product.name }}
+      </h1>
+
+      <div class="flex items-center gap-3 mt-3 text-sm text-slate-500">
+
+        <span>ID #{{ product.id }}</span>
+
+        <span>•</span>
+
+        <span>{{ product.companyName }}</span>
+
+
+      </div>
+
+    </div>
 
     <button
       [routerLink]="['/products', id]"
-      (click)="$event.stopPropagation()"
-      class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100">
-      Edit
+      class="rounded-xl bg-blue-600 px-5 py-2.5 text-white shadow hover:bg-blue-700 transition">
+
+      Edit Product
+
     </button>
 
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5 text-slate-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor">
-
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 5l7 7-7 7"/>
-
-    </svg>
-
   </div>
-  <!-- TOP GRID -->
-  <div class="grid lg:grid-cols-5 gap-10">
 
-    <!-- IMAGE SECTION -->
-    <div class="lg:col-span-3 space-y-4">
+  <!-- Main -->
+  <div class="grid lg:grid-cols-5 gap-8">
 
-      <!-- MAIN IMAGE -->
-      <div class="relative rounded-2xl overflow-hidden bg-slate-100 border shadow-sm group">
+    <!-- LEFT -->
+    <div class="lg:col-span-3 space-y-6">
+
+      <!-- Main image -->
+      <div class="rounded-2xl overflow-hidden border bg-white shadow-sm">
 
         <img
-          [src]="mainImage ? sharedService.getImageUrl(mainImage) : 'assets/placeholder.png'"
-          class="w-full h-[520px] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-        />
-
-        <!-- subtle gradient -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+          [src]="sharedService.getImageUrl(mainImage)"
+          class="w-full h-[520px] object-cover">
 
       </div>
 
-      <!-- THUMBNAILS -->
-      <div class="flex gap-2 overflow-x-auto pb-1">
+      <!-- Gallery -->
+      <div class="bg-white border rounded-2xl p-5 shadow-sm">
 
-        <img
-          *ngFor="let img of product.images"
-          [src]="sharedService.getImageUrl(img.url)"
-          class="w-16 h-16 rounded-lg object-cover border cursor-pointer
-                 opacity-70 hover:opacity-100 hover:scale-105 transition
-                 hover:border-sky-400"
-        />
+        <h3 class="font-semibold text-slate-900 mb-4">
+          Gallery
+        </h3>
+
+        <div class="flex gap-3 overflow-x-auto">
+
+          <img
+            *ngFor="let img of product.images"
+            [src]="sharedService.getImageUrl(img.url)"
+            class="h-20 w-20 rounded-xl border object-cover cursor-pointer hover:border-blue-500 hover:scale-105 transition">
+
+          <p *ngIf="product.images.length == 0" class="leading-7 text-slate-600">No images yet</p>
+
+        </div>
+
+      </div>
+
+      <!-- Description -->
+      <div class="bg-white border rounded-2xl p-6 shadow-sm">
+
+        <h3 class="font-semibold text-slate-900 mb-4">
+          Description
+        </h3>
+
+        <p class="leading-7 text-slate-600">
+          {{ product.description }}
+        </p>
+
+        <p *ngIf="product.description.length == 0">No images yet</p>
+
 
       </div>
 
     </div>
 
-    <!-- INFO PANEL (STICKY FEEL) -->
-    <div class="lg:col-span-2 space-y-6 lg:sticky lg:top-6">
+    <!-- RIGHT -->
+    <div class="lg:col-span-2 space-y-6">
 
-      <!-- TITLE BLOCK -->
-      <div class="space-y-2">
-
-        <h1 class="text-2xl font-semibold text-slate-900 leading-snug">
-          {{ product.name }}
-        </h1>
-
-        <div class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-
-          <span class="font-medium text-slate-700">
-            {{ product.companyName }}
-          </span>
-
-          <span class="text-slate-300">•</span>
-
-          <span>ID {{ product.id }}</span>
-
-          <span *ngIf="product.companyIsVerified"
-                class="text-green-600 font-medium flex items-center gap-1">
-            ✔ Verified
-          </span>
-
-        </div>
-
-      </div>
-
-      <!-- RATING CARD -->
-      <div class="flex items-center gap-4 bg-slate-50 border rounded-xl px-4 py-3">
-
-        <div class="text-yellow-500 font-semibold text-lg">
-          ★ {{ product.averageRating ?? 0 }}
-        </div>
+      <!-- Rating -->
+      <div class="bg-white border rounded-2xl p-6 shadow-sm">
 
         <div class="text-sm text-slate-500">
-          {{ product.reviewsCount }} reviews
+          Average Rating
+        </div>
+
+        <div class="mt-2 flex items-center gap-3">
+
+          <span class="text-4xl font-bold text-yellow-500">
+
+            ★ {{ product.averageRating ?? 0 }}
+
+          </span>
+
+        </div>
+
+        <p class="mt-2 text-slate-500">
+
+          {{ product.reviewsCount }} Reviews
+
+        </p>
+
+      </div>
+
+      <!-- Product Information -->
+      <div class="bg-white border rounded-2xl shadow-sm">
+
+        <div class="border-b px-6 py-4">
+
+          <h3 class="font-semibold text-slate-900">
+
+            Product Information
+
+          </h3>
+
+        </div>
+
+        <div class="divide-y">
+
+          <div class="flex justify-between px-6 py-4">
+
+            <span class="text-slate-500">
+              Category
+            </span>
+
+            <span class="font-medium">
+              {{ product.category }}
+            </span>
+
+          </div>
+
+          <div class="flex justify-between px-6 py-4">
+
+            <span class="text-slate-500">
+              Subcategory
+            </span>
+
+            <span class="font-medium">
+              {{ product.subcategory }}
+            </span>
+
+          </div>
+
+          <div class="flex justify-between px-6 py-4">
+
+            <span class="text-slate-500">
+              Status
+            </span>
+
+            <span
+              class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+              [ngClass]="{
+                'bg-gray-100 text-gray-700': product.status === 'DRAFT',
+                'bg-amber-100 text-amber-700': product.status === 'PENDING_REVIEW',
+                'bg-green-100 text-green-700': product.status === 'PUBLISHED',
+                'bg-red-100 text-red-700': product.status === 'REJECTED',
+                'bg-slate-200 text-slate-700': product.status === 'ARCHIVED'
+              }">
+
+              {{ product.status.replace('_',' ') }}
+
+            </span>
+
+          </div>
+
         </div>
 
       </div>
 
-      <!-- DESCRIPTION -->
-      <p class="text-sm text-slate-600 leading-relaxed">
-        {{ product.description }}
-      </p>
+      <!-- Company -->
+      <div class="bg-white border rounded-2xl shadow-sm">
 
-      <!-- INFO BOX -->
-      <div class="border rounded-xl divide-y text-sm bg-white shadow-sm">
+        <div class="border-b px-6 py-4">
 
-        <div class="flex justify-between p-3">
-          <span class="text-slate-400">Category</span>
-          <span class="font-medium text-slate-700">{{ product.category }}</span>
+          <h3 class="font-semibold">
+            Company
+          </h3>
+
         </div>
 
-        <div class="flex justify-between p-3">
-          <span class="text-slate-400">Subcategory</span>
-          <span class="font-medium text-slate-700">{{ product.subcategory }}</span>
-        </div>
+        <div class="p-6">
 
-        <div class="flex justify-between p-3">
-          <span class="text-slate-400">Status</span>
-          <span class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-            {{ product.status }}
-          </span>
+          <div class="font-semibold text-lg">
+            {{ product.companyName }}
+          </div>
+
         </div>
 
       </div>
@@ -131,34 +207,46 @@
 
   </div>
 
-  <!-- REVIEWS SECTION -->
-  <div class="mt-14 space-y-5">
+  <!-- Reviews -->
+  <div class="mt-12">
 
-    <h2 class="text-lg font-semibold text-slate-900">
+    <h2 class="text-2xl font-bold text-slate-900 mb-6">
+
       Customer Reviews
+
     </h2>
 
-    <div class="space-y-3">
+    <div class="space-y-4">
 
       <div
         *ngFor="let r of product.reviews"
-        class="border rounded-xl p-4 bg-white hover:shadow-sm transition"
-      >
+        class="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition">
 
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
-          <div class="font-medium text-slate-800">
-            {{ r.userName }}
+          <div>
+
+            <div class="font-semibold text-slate-900">
+
+              {{ r.userName }}
+
+            </div>
+
           </div>
 
-          <div class="text-yellow-500 text-sm font-medium">
+          <div
+            class="rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700">
+
             ★ {{ r.rating }}
+
           </div>
 
         </div>
 
-        <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+        <p class="mt-4 leading-7 text-slate-600">
+
           {{ r.content }}
+
         </p>
 
       </div>
@@ -169,9 +257,12 @@
 
 </div>
 
-<!-- LOADING -->
 <ng-template #loadingTpl>
+
   <div class="h-[60vh] flex items-center justify-center text-slate-400">
+
     Loading product...
+
   </div>
+
 </ng-template>
