@@ -7,7 +7,8 @@ export interface DetailedProductResponse {
   name: string;
   description: string;
   category: string | null;
-  subcategory: string | null;
+  subcategoryId: string | null;
+  subcategoryName: string | null;
   companyId: number;
   companyName: string;
   companyLogoUrl: string;
