@@ -66,7 +66,7 @@ export class ProductsManagementComponent implements OnInit {
         p.name?.toLowerCase().includes(q) ||
         p.companyName?.toLowerCase().includes(q) ||
         p.category?.toLowerCase().includes(q) ||
-        p.subcategory?.toLowerCase().includes(q);
+        p.subcategoryName?.toLowerCase().includes(q);
 
       const matchesStatus =
         !this.selectedStatus ||

@@ -1,4 +1,3 @@
-
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,9 +11,7 @@ import { SubcategoryService } from '../../../category/services/subcategoryServic
 import { SharedService } from '../../../../core/services/sharedService/shared.service';
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
 import { FormsModule } from '@angular/forms';
-import {ProductStatus} from '../../enums/productStatus.enum.model';
-
-
+import { ProductStatus } from '../../enums/productStatus.enum.model';
 
 @Component({
   selector: 'app-edit-product',
@@ -28,13 +25,17 @@ export class EditProductComponent implements OnInit {
   saving = false;
   imageSaving = false;
   error: string | null = null;
+
   product: DetailedProductResponse | null = null;
+
   companies: CompanyResponse[] = [];
   subcategories: SubcategoryResponse[] = [];
+
   selectedSubcategoryId: number | null = null;
   selectedFile?: File;
-  selectedStatus?: ProductStatus;
+
   previewUrl: string | null = null;
+
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
   pendingDeleteId?: number;
 
@@ -46,12 +47,11 @@ export class EditProductComponent implements OnInit {
     private router: Router,
     private subcategoryService: SubcategoryService,
     public sharedService: SharedService
-
   ) {}
 
   ngOnInit(): void {
-
     const id = Number(this.route.snapshot.paramMap.get('id'));
+
     this.loadCompanies();
     this.loadSubcategories();
 
@@ -59,11 +59,17 @@ export class EditProductComponent implements OnInit {
       this.error = 'Invalid product id';
       return;
     }
+
     this.load(id);
   }
 
+  /* =========================
+     LOAD DATA
+  ========================= */
+
   loadCompanies() {
     this.companiesLoading = true;
+
     this.companyService.getAllCompanies().subscribe({
       next: (res) => {
         this.companies = res;
@@ -81,16 +87,7 @@ export class EditProductComponent implements OnInit {
     this.subcategoryService.getAllSubcategories().subscribe({
       next: (res) => {
         this.subcategories = res;
-        // if product already loaded, try to set selectedSubcategoryId by id or by name
-        if (this.product) {
-          const maybeId = Number(this.product.category);
-          if (!isNaN(maybeId) && maybeId > 0) {
-            this.selectedSubcategoryId = maybeId;
-          } else if (this.product.category) {
-            const matched = this.subcategories.find(s => s.name.toLowerCase() === String(this.product!.category).toLowerCase());
-            if (matched) this.selectedSubcategoryId = matched.id;
-          }
-        }
+        this.syncSubcategory();
       },
       error: (err) => {
         console.error('Failed to load subcategories', err);
@@ -101,21 +98,16 @@ export class EditProductComponent implements OnInit {
   load(id: number) {
     this.loading = true;
     this.error = null;
+
     this.productService.getDetailedProductByIdAsAdmin(id).subscribe({
       next: (p) => {
-        console.log("this is the return of product; ", p);
+        console.log('product:', p);
+
         this.product = p;
+
         this.resolveCompanySelection();
-        // sync selected subcategory if subcategories already loaded
-        if (this.subcategories.length > 0 && this.product) {
-          const maybeId = Number(this.product.category);
-          if (!isNaN(maybeId) && maybeId > 0) {
-            this.selectedSubcategoryId = maybeId;
-          } else if (this.product.category) {
-            const matched = this.subcategories.find(s => s.name.toLowerCase() === String(this.product!.category).toLowerCase());
-            if (matched) this.selectedSubcategoryId = matched.id;
-          }
-        }
+        this.syncSubcategory();
+
         this.loading = false;
       },
       error: (err) => {
@@ -126,6 +118,33 @@ export class EditProductComponent implements OnInit {
     });
   }
 
+  /* =========================
+     FIXED SUBCATEGORY SYNC
+  ========================= */
+
+  private syncSubcategory() {
+    if (!this.product || this.subcategories.length === 0) return;
+
+    // 1. BEST CASE: backend gives real ID
+    if (this.product.subcategoryId) {
+      this.selectedSubcategoryId = Number(this.product.subcategoryId);
+      return;
+    }
+
+    // 2. FALLBACK: match by name
+    if (this.product.subcategoryName) {
+      const matched = this.subcategories.find(
+        s => s.name.toLowerCase() === this.product!.subcategoryName!.toLowerCase()
+      );
+
+      if (matched) {
+        this.selectedSubcategoryId = matched.id;
+      }
+    }
+  }
+  /* =========================
+     SAVE
+  ========================= */
 
   save() {
     if (!this.product) return;
@@ -142,16 +161,16 @@ export class EditProductComponent implements OnInit {
       description: this.product.description ?? null,
       subcategoryId: this.selectedSubcategoryId
         ? String(this.selectedSubcategoryId)
-        : (this.product.category ? String(this.product.category) : ''),
+        : (this.product.subcategoryId ?? ''),
       companyId: this.product.companyId,
-      status: this.selectedStatus ?? null
+      status: this.product.status
     };
 
     this.productService.updateProductAsAdmin(this.product.id, payload)
       .subscribe({
         next: () => {
           this.saving = false;
-          this.router.navigate(['/products']);
+          this.router.navigate(['/admin/products']);
         },
         error: (err) => {
           console.error('Save failed', err);
@@ -161,110 +180,125 @@ export class EditProductComponent implements OnInit {
       });
   }
 
+  /* =========================
+     IMAGE UPLOAD
+  ========================= */
 
   onFileSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
-    if (input.files && input.files.length) {
-      const file = input.files[0];
-      // validate type and size
-      if (!file.type.startsWith('image/')) {
-        this.error = 'Selected file is not an image';
-        this.selectedFile = undefined;
-        this.previewUrl = null;
-        return;
-      }
-      const maxMB = 5;
-      if (file.size > maxMB * 1024 * 1024) {
-        this.error = `Image must be smaller than ${maxMB} MB`;
-        this.selectedFile = undefined;
-        this.previewUrl = null;
-        return;
-      }
-      this.error = null;
-      this.selectedFile = file;
-      this.previewUrl = URL.createObjectURL(file);
-    } else {
-      this.selectedFile = undefined;
+
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+
+    if (!file.type.startsWith('image/')) {
+      this.error = 'Selected file is not an image';
+      return;
     }
+
+    const maxMB = 5;
+    if (file.size > maxMB * 1024 * 1024) {
+      this.error = `Image must be smaller than ${maxMB} MB`;
+      return;
+    }
+
+    this.error = null;
+    this.selectedFile = file;
+    this.previewUrl = URL.createObjectURL(file);
   }
 
   uploadFile() {
-    if (!this.product) return;
-    if (!this.selectedFile) {
+    if (!this.product || !this.selectedFile) {
       this.error = 'Please select a file to upload';
       return;
     }
 
     this.imageSaving = true;
-    this.productImageService.uploadImageFile(this.product.id, this.selectedFile).subscribe({
-      next: () => {
-        this.clearFileSelection();
-        this.imageSaving = false;
-        this.load(this.product!.id);
-      },
-      error: (err) => {
-        console.error('Failed to upload image', err);
-        this.error = 'Failed to upload image';
-        this.imageSaving = false;
-      }
-    });
+
+    this.productImageService.uploadImageFile(this.product.id, this.selectedFile)
+      .subscribe({
+        next: () => {
+          this.clearFileSelection();
+          this.imageSaving = false;
+          this.load(this.product!.id);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Failed to upload image';
+          this.imageSaving = false;
+        }
+      });
   }
 
   private clearFileSelection() {
     this.selectedFile = undefined;
+
     if (this.previewUrl) {
       URL.revokeObjectURL(this.previewUrl);
       this.previewUrl = null;
     }
-    try {
-      if (this.fileInput && this.fileInput.nativeElement) {
-        this.fileInput.nativeElement.value = '';
-      }
-    } catch {}
-  }
 
-  deleteImage(imageId: number) {
-    // inline confirm flow: mark pending id first
-    this.pendingDeleteId = imageId;
-  }
-
-
-
-  ngOnDestroy(): void {
-    if (this.previewUrl) {
-      URL.revokeObjectURL(this.previewUrl);
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
     }
   }
 
-  setMainImage(imageId: number) {
-    if (!this.product || !this.product.id) return;
-    this.imageSaving = true;
-    this.productImageService.setMainImage(imageId, this.product.id).subscribe({
-      next: () => {
-        this.imageSaving = false;
-        this.load(this.product!.id);
-      },
-      error: (err) => {
-        console.error('Failed to set main image', err);
-        this.error = 'Failed to set main image';
-        this.imageSaving = false;
-      }
-    });
-  }
+  /* =========================
+     COMPANY FIX (same as before)
+  ========================= */
 
   private resolveCompanySelection() {
     if (!this.product || this.companies.length === 0) return;
+
     if (!this.product.companyId && this.product.companyName) {
-      const matched = this.companies.find(c => c.name.toLowerCase() === this.product!.companyName.toLowerCase());
+      const matched = this.companies.find(
+        c => c.name.toLowerCase() === this.product!.companyName.toLowerCase()
+      );
+
       if (matched) {
         this.product.companyId = matched.id;
       }
     }
   }
 
+  /* =========================
+     IMAGES
+  ========================= */
+
+  setMainImage(imageId: number) {
+    if (!this.product) return;
+
+    this.imageSaving = true;
+
+    this.productImageService.setMainImage(imageId, this.product.id)
+      .subscribe({
+        next: () => {
+          this.imageSaving = false;
+          this.load(this.product!.id);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Failed to set main image';
+          this.imageSaving = false;
+        }
+      });
+  }
+
+  deleteImage(imageId: number) {
+    this.pendingDeleteId = imageId;
+  }
+
+  /* =========================
+     NAV
+  ========================= */
+
   back() {
     this.router.navigate(['/admin/products']);
   }
+
+  /* =========================
+     GETTERS
+  ========================= */
 
   get mainImageUrl(): string | null {
     return (
@@ -274,4 +308,9 @@ export class EditProductComponent implements OnInit {
     );
   }
 
+  ngOnDestroy(): void {
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+    }
+  }
 }

@@ -6,7 +6,7 @@ export interface ProductResponse {
   description: string;
   category: string;
   categoryName?: string;
-  subcategory?: string;
+  subcategoryId?: string;
   subcategoryName?: string;
   companyId: number;
   companyName: string;
