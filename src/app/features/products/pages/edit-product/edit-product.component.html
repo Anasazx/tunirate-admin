@@ -104,6 +104,25 @@
 
         </select>
 
+        <!-- STATUS SELECT -->
+        <div>
+          <label class="text-sm text-slate-500 mb-1 block">
+            Product Status
+          </label>
+
+          <select
+            [(ngModel)]="product.status"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 focus:border-sky-500 outline-none">
+
+            <option value="DRAFT">Draft</option>
+            <option value="PENDING_REVIEW">Pending Review</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="ARCHIVED">Archived</option>
+
+          </select>
+        </div>
+
         <textarea
           [(ngModel)]="product.description"
           rows="6"
@@ -171,8 +190,8 @@
         <div class="rounded-xl border overflow-hidden bg-slate-50">
 
           <img
-            [src]="mainImageUrl ? sharedService.getImageUrl(mainImageUrl) : 'assets/placeholder.png'"
-            class="w-full h-80 object-contain p-4">
+            [src]="sharedService.getImageUrl(mainImageUrl)"
+            class="w-full h-100 object-contain p-4">
 
         </div>
 
