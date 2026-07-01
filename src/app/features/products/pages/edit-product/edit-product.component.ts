@@ -12,6 +12,7 @@ import { SubcategoryService } from '../../../category/services/subcategoryServic
 import { SharedService } from '../../../../core/services/sharedService/shared.service';
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
 import { FormsModule } from '@angular/forms';
+import {ProductStatus} from '../../enums/productStatus.enum.model';
 
 
 
@@ -32,6 +33,7 @@ export class EditProductComponent implements OnInit {
   subcategories: SubcategoryResponse[] = [];
   selectedSubcategoryId: number | null = null;
   selectedFile?: File;
+  selectedStatus?: ProductStatus;
   previewUrl: string | null = null;
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
   pendingDeleteId?: number;
@@ -42,7 +44,6 @@ export class EditProductComponent implements OnInit {
     private companyService: CompanyService,
     private productImageService: ProductImageService,
     private router: Router,
-    public imageService: ProductImageService,
     private subcategoryService: SubcategoryService,
     public sharedService: SharedService
 
@@ -143,14 +144,14 @@ export class EditProductComponent implements OnInit {
         ? String(this.selectedSubcategoryId)
         : (this.product.category ? String(this.product.category) : ''),
       companyId: this.product.companyId,
-      status: null
+      status: this.selectedStatus ?? null
     };
 
     this.productService.updateProductAsAdmin(this.product.id, payload)
       .subscribe({
         next: () => {
           this.saving = false;
-          this.router.navigate(['/admin/products']);
+          this.router.navigate(['/products']);
         },
         error: (err) => {
           console.error('Save failed', err);
@@ -227,35 +228,7 @@ export class EditProductComponent implements OnInit {
     this.pendingDeleteId = imageId;
   }
 
-  cancelDelete() {
-    this.pendingDeleteId = undefined;
-  }
 
-  performDelete(imageId: number) {
-    if (!this.product || !this.product.id) return;
-    this.imageSaving = true;
-    this.productImageService.deleteImage(imageId).subscribe({
-      next: () => {
-        this.imageSaving = false;
-        this.pendingDeleteId = undefined;
-        this.load(this.product!.id);
-      },
-      error: (err) => {
-        console.error('Failed to delete image', err);
-        this.error = 'Failed to delete image';
-        this.imageSaving = false;
-        this.pendingDeleteId = undefined;
-      }
-    });
-  }
-
-  formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
 
   ngOnDestroy(): void {
     if (this.previewUrl) {
