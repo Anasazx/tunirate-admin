@@ -133,47 +133,7 @@
 
       </div>
 
-      <!-- REVIEWS -->
-      <div class="bg-white border rounded-2xl p-6">
 
-        <div class="flex items-center justify-between mb-4">
-
-          <h3 class="font-semibold">
-            Reviews
-          </h3>
-
-          <span class="text-sm text-slate-500">
-            {{ product.reviewsCount || 0 }}
-          </span>
-
-        </div>
-
-        <div class="space-y-4">
-
-          <div *ngFor="let r of product.reviews"
-               class="border rounded-xl p-4">
-
-            <div class="flex justify-between">
-
-              <span class="font-medium">
-                {{ r.userName }}
-              </span>
-
-              <span class="text-yellow-500">
-                ★ {{ r.rating }}
-              </span>
-
-            </div>
-
-            <p class="text-sm text-slate-600 mt-2">
-              {{ r.content }}
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
 
     </div>
 

@@ -30,6 +30,27 @@
           Loading categories...
         </div>
 
+        <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            {{ categoryEditingId ? 'Edit Category' : 'Create Category' }}
+          </h4>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+              <input [(ngModel)]="categoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Category name" />
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="saveCategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                Save
+              </button>
+              <button (click)="cancelCategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+
         <div *ngIf="!loadingCategories" class="overflow-hidden rounded-xl border border-gray-200">
           <table class="min-w-full divide-y divide-gray-200 text-left">
             <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
@@ -59,25 +80,7 @@
           </table>
         </div>
 
-        <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            {{ categoryEditingId ? 'Edit Category' : 'Create Category' }}
-          </h4>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-              <input [(ngModel)]="categoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Category name" />
-            </div>
-            <div class="flex items-center gap-3">
-              <button (click)="saveCategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                Save
-              </button>
-              <button (click)="cancelCategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
 
@@ -96,6 +99,34 @@
         <div *ngIf="loadingSubcategories" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
           Loading subcategories...
         </div>
+
+        <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            {{ subcategoryEditingId ? 'Edit Subcategory' : 'Create Subcategory' }}
+          </h4>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+              <input [(ngModel)]="subcategoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Subcategory name" />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
+              <select [(ngModel)]="subcategoryForm.categoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500">
+                <option [ngValue]="null" disabled>Select category</option>
+                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="saveSubcategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                Save
+              </button>
+              <button (click)="cancelSubcategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
 
         <div *ngIf="!loadingSubcategories" class="overflow-hidden rounded-xl border border-gray-200">
           <table class="min-w-full divide-y divide-gray-200 text-left">
@@ -124,32 +155,7 @@
           </table>
         </div>
 
-        <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            {{ subcategoryEditingId ? 'Edit Subcategory' : 'Create Subcategory' }}
-          </h4>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-              <input [(ngModel)]="subcategoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Subcategory name" />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
-              <select [(ngModel)]="subcategoryForm.categoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500">
-                <option [ngValue]="null" disabled>Select category</option>
-                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-3">
-              <button (click)="saveSubcategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                Save
-              </button>
-              <button (click)="cancelSubcategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   </div>
