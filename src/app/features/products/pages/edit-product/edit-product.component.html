@@ -180,6 +180,8 @@
 
         <div class="grid grid-cols-2 gap-3">
 
+          <p *ngIf="product.images.length == 0">No images yet!</p>
+
           <div *ngFor="let img of product.images"
                class="relative rounded-xl overflow-hidden border">
 

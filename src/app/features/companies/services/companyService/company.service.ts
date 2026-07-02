@@ -32,7 +32,7 @@ export class CompanyService {
   }
 
   getCompanyDetailsByIdAsAdmin(id: number): Observable<CompanyResponse> {
-    return this.http.get<CompanyResponse>(`${this.companyUrl}/details/${id}`);
+    return this.http.get<CompanyResponse>(`${this.companyUrl}/op/details/${id}`);
   }
 
   createCompany(payload: CompanyRequest): Observable<CompanyResponse> {
