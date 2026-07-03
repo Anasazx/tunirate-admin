@@ -26,6 +26,7 @@ export class NewCompanyComponent {
     address: null,
     country: Country.TUNISIA,
     industry: Industry.OTHER,
+    socialLinks: [],
     status: CompanyStatus.PENDING
   };
 

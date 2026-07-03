@@ -2,7 +2,7 @@ import {CompanyMemberResponse} from '../companyMemberDTO/CompanyMemberResponse.m
 import {ProductResponse} from '../../../products/models/productDTO/productResponse.model';
 import {CompanyStatus} from '../../enums/companyStatus.enum.model';
 import {UserResponse} from '../../../users/models/userDTO/userResponse.model';
-import {CompanySocialLink} from '../companySocialLink.model';
+import {CompanySocialLinkResponse} from '../companySocialLinkDTO/companySocialLinkResponse.model';
 import {Industry} from '../../../../core/model/enums/industry.enum.model';
 import {Country} from '../../../../core/model/enums/country.enum.model';
 
@@ -15,7 +15,7 @@ export interface CompanyResponse {
 
   phoneNumber: string | null;
   websiteUrl: string | null;
-  socialLinks: CompanySocialLink[] | null;
+  socialLinks: CompanySocialLinkResponse[] | null;
   address: string | null;
   country: Country;
   industry: Industry;

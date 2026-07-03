@@ -10,6 +10,7 @@ import { CompanyRequest } from '../../models/companyDTO/companyRequest.model';
 import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
 import {Country} from '../../../../core/model/enums/country.enum.model';
 import {Industry} from '../../../../core/model/enums/industry.enum.model';
+import {SocialPlatform} from '../../enums/SocialPlatform.enum.model';
 
 @Component({
   selector: 'app-edit-company',
@@ -26,6 +27,7 @@ export class EditCompanyComponent implements OnInit {
 
   countries = Object.values(Country);
   industries = Object.values(Industry);
+  socialPlatforms = Object.values(SocialPlatform);
 
   form: CompanyRequest = {
     name: '',
@@ -35,6 +37,7 @@ export class EditCompanyComponent implements OnInit {
     address: '',
     country: Country.TUNISIA,
     industry: Industry.OTHER,
+    socialLinks: [],
     status: null
   };
 
@@ -65,6 +68,10 @@ export class EditCompanyComponent implements OnInit {
           address: company.address,
           country: company.country,
           industry: company.industry,
+          socialLinks: (company.socialLinks ?? []).map((link) => ({
+            platform: link.platform,
+            url: link.url
+          })),
           status: company.status
         };
 
@@ -76,19 +83,10 @@ export class EditCompanyComponent implements OnInit {
   isError: boolean = false;
 
   save() {
-    this.companyService
-      .updateCompany(this.companyId, this.form)
-      .subscribe(updated => {
-
-        this.company = updated;
-
-        this.loadCompany();
-      });
-
-
-
     this.companyService.updateCompany(this.companyId, this.form).subscribe({
-      next: () => {
+      next: (updated) => {
+        this.company = updated;
+        this.loadCompany();
         this.message = 'Company updated successfully';
         this.isError = false;
         setTimeout(() => this.message = null, 2500);
@@ -139,5 +137,16 @@ export class EditCompanyComponent implements OnInit {
     this.companyService
       .deleteBanner(this.companyId)
       .subscribe(() => this.loadCompany());
+  }
+
+  addSocialLink() {
+    this.form.socialLinks.push({
+      platform: SocialPlatform.WEBSITE,
+      url: ''
+    });
+  }
+
+  removeSocialLink(index: number) {
+    this.form.socialLinks.splice(index, 1);
   }
 }
