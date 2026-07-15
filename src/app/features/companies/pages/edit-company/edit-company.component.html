@@ -143,42 +143,48 @@
         <div class="space-y-3">
           <div
             *ngFor="let link of form.socialLinks; let i = index"
-            class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+          >
 
+            <!-- Platform -->
             <div class="md:col-span-4">
               <label class="block text-xs font-medium mb-1">
                 Platform
               </label>
+
               <select
                 [(ngModel)]="link.platform"
-                class="w-full border rounded-lg px-3 py-2">
+                class="w-full border rounded-lg px-3 py-2"
+              >
                 <option *ngFor="let platform of socialPlatforms" [ngValue]="platform">
                   {{ platform }}
                 </option>
               </select>
             </div>
 
-            <div class="md:col-span-7">
+            <!-- URL -->
+            <div class="md:col-span-6">
               <label class="block text-xs font-medium mb-1">
                 URL
               </label>
+
               <input
                 [(ngModel)]="link.url"
                 placeholder="https://example.com"
-                class="w-full border rounded-lg px-3 py-2">
+                class="w-full border rounded-lg px-3 py-2"
+              />
             </div>
 
-            <div class="md:col-span-1">
-              <label class="block text-xs font-medium mb-1 opacity-0">
-                Action
-              </label>
-
+            <!-- REMOVE -->
+            <div class="md:col-span-2 flex items-end">
               <button
                 type="button"
                 (click)="removeSocialLink(i)"
-                class="w-full h-[42px] flex items-center justify-center
-           rounded-lg border border-red-200
-           text-red-600 hover:bg-red-50 transition">
+                class="px-3 py-2 inline-flex items-center justify-center
+                rounded-lg border border-red-200
+                text-red-600 hover:bg-red-50 transition
+                text-sm font-medium w-full"
+              >
                 Remove
               </button>
             </div>
