@@ -228,21 +228,28 @@
 
         </div>
 
+
         <div class="space-y-3">
+
           <input
             type="file"
+            accept="image/*"
             class="w-full"
             (change)="onLogoSelected($event)">
 
-          <button
-            *ngIf="company?.logoUrl"
-            (click)="deleteLogo()"
-            class="text-red-600 hover:underline text-sm">
-            Remove Logo
-          </button>
+
+          <p
+            *ngIf="selectedLogo"
+            class="text-sm text-green-600">
+            New logo selected:
+            {{ selectedLogo.name }}
+          </p>
+
+
         </div>
 
       </div>
+
 
       <!-- Banner -->
       <div class="border rounded-xl p-5 flex flex-col">
@@ -251,12 +258,14 @@
           Company Banner
         </h3>
 
-        <div class="flex-1 flex items-center mb-4 min-h-[160px]">
+
+        <div class="flex-1 flex items-center justify-center mb-4 min-h-[160px]">
 
           <img
             *ngIf="company?.bannerUrl; else noBanner"
             [src]="sharedService.getImageUrl(company.bannerUrl)"
             class="w-full h-40 rounded-lg object-cover border">
+
 
           <ng-template #noBanner>
             <div class="w-full h-40 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
@@ -264,23 +273,32 @@
             </div>
           </ng-template>
 
+
         </div>
 
+
         <div class="space-y-3">
+
           <input
             type="file"
+            accept="image/*"
             class="w-full"
             (change)="onBannerSelected($event)">
 
-          <button
-            *ngIf="company?.bannerUrl"
-            (click)="deleteBanner()"
-            class="text-red-600 hover:underline text-sm">
-            Remove Banner
-          </button>
+
+          <p
+            *ngIf="selectedBanner"
+            class="text-sm text-green-600">
+            New banner selected:
+            {{ selectedBanner.name }}
+          </p>
+
+
         </div>
 
+
       </div>
+
 
     </div>
 

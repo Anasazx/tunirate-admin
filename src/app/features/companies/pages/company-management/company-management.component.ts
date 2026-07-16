@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
-import { CompanyRequest } from '../../models/companyDTO/companyRequest.model';
 import { CompanyService } from '../../services/companyService/company.service';
+import {CompanyStatus} from '../../enums/companyStatus.enum.model';
 
 
 @Component({
@@ -50,7 +50,7 @@ export class CompanyManagementComponent implements OnInit {
   archive(id: number) {
     if (!confirm('Archive this company?')) return;
 
-    this.companyService.archiveCompany(id).subscribe({
+    this.companyService.updateCompanyStatus(id, CompanyStatus.ARCHIVED).subscribe({
       next: () => this.loadCompanies(),
       error: (err) => {
         console.error(err);

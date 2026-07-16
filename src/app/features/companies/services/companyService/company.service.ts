@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SharedService } from '../../../../core/services/sharedService/shared.service';
 import { CompanyRequest } from '../../models/companyDTO/companyRequest.model';
 import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
+import {CompanyStatus} from '../../enums/companyStatus.enum.model';
 
 
 @Injectable({
@@ -27,58 +28,69 @@ export class CompanyService {
     return this.http.get<CompanyResponse[]>(`${this.companyUrl}`);
   }
 
-  getCompanyById(id: number): Observable<CompanyResponse> {
-    return this.http.get<CompanyResponse>(`${this.companyUrl}/${id}`);
-  }
-
   getCompanyDetailsByIdAsAdmin(id: number): Observable<CompanyResponse> {
     return this.http.get<CompanyResponse>(`${this.companyUrl}/op/details/${id}`);
   }
 
-  createCompany(payload: CompanyRequest): Observable<CompanyResponse> {
-    return this.http.post<CompanyResponse>(this.companyUrl, payload);
-  }
+  createCompany(payload: CompanyRequest, logo?: File, banner?: File): Observable<CompanyResponse> {
 
-  updateCompany(id: number, payload: CompanyRequest): Observable<CompanyResponse> {
-    return this.http.put<CompanyResponse>(`${this.companyUrl}/${id}`, payload);
-  }
-
-  uploadLogo(companyId: number, file: File): Observable<void> {
     const formData = new FormData();
-    formData.append('file', file);
 
-    return this.http.post<void>(
-      `${this.companyUrl}/${companyId}/logo`,
+    // JSON part
+    formData.append(
+      'data',
+      new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+      )
+    );
+
+    // Logo file
+    if (logo) {
+      formData.append('logo', logo);
+    }
+
+    // Banner file
+    if (banner) {
+      formData.append('banner', banner);
+    }
+
+    return this.http.post<CompanyResponse>(this.companyUrl, formData);
+
+  }
+
+  updateCompany(id: number, payload: CompanyRequest, logo?: File, banner?: File): Observable<CompanyResponse> {
+
+    const formData = new FormData();
+
+    // JSON part
+    formData.append(
+      'data',
+      new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+      )
+    );
+
+    // Logo
+    if (logo) {
+      formData.append('logo', logo);
+    }
+
+    // Banner
+    if (banner) {
+      formData.append('banner', banner);
+    }
+
+    return this.http.put<CompanyResponse>(
+      `${this.companyUrl}/${id}`,
       formData
     );
+
   }
 
-  uploadBanner(companyId: number, file: File): Observable<void> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<void>(
-      `${this.companyUrl}/${companyId}/banner`,
-      formData
-    );
+  updateCompanyStatus(companyId: number, status: CompanyStatus): Observable<void> {
+    return this.http.patch<void>(`${this.companyUrl}/${companyId}/status`, status);
   }
-
-  deleteLogo(companyId: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.companyUrl}/${companyId}/logo`
-    );
-  }
-
-  deleteBanner(companyId: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.companyUrl}/${companyId}/banner`
-    );
-  }
-
-
-
-  archiveCompany(companyId: number): Observable<void> {
-    return this.http.post<void>(`${this.companyUrl}/${companyId}/archive`, {});
-  }
-
 
 }

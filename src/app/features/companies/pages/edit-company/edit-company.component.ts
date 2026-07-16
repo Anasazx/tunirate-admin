@@ -8,14 +8,19 @@ import { CompanyService } from '../../services/companyService/company.service';
 
 import { CompanyRequest } from '../../models/companyDTO/companyRequest.model';
 import { CompanyResponse } from '../../models/companyDTO/companyResponse.model';
-import {Country} from '../../../../core/model/enums/country.enum.model';
-import {Industry} from '../../../../core/model/enums/industry.enum.model';
-import {SocialPlatform} from '../../enums/SocialPlatform.enum.model';
+
+import { Country } from '../../../../core/model/enums/country.enum.model';
+import { Industry } from '../../../../core/model/enums/industry.enum.model';
+import { SocialPlatform } from '../../enums/SocialPlatform.enum.model';
+
 
 @Component({
   selector: 'app-edit-company',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
   templateUrl: './edit-company.component.html',
   styleUrl: './edit-company.component.css'
 })
@@ -30,15 +35,27 @@ export class EditCompanyComponent implements OnInit {
   socialPlatforms = Object.values(SocialPlatform);
 
   form: CompanyRequest = {
+
     name: '',
     description: '',
-    phoneNumber: '',
-    address: '',
+    phoneNumber: null,
+    address: null,
+
     country: Country.TUNISIA,
     industry: Industry.OTHER,
+
     socialLinks: [],
+
     status: null
   };
+
+  selectedLogo?: File;
+  selectedBanner?: File;
+
+  loading = false;
+
+  message: string | null = null;
+  isError = false;
 
   constructor(
     public sharedService: SharedService,
@@ -48,93 +65,91 @@ export class EditCompanyComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.companyId = Number(this.route.snapshot.paramMap.get('id'));
+    this.companyId =
+      Number(this.route.snapshot.paramMap.get('id'));
     this.loadCompany();
   }
 
   loadCompany() {
     this.companyService
       .getCompanyDetailsByIdAsAdmin(this.companyId)
-      .subscribe(company => {
-
-        this.company = company;
-
-        this.form = {
-          name: company.name,
-          description: company.description,
-          phoneNumber: company.phoneNumber,
-          address: company.address,
-          country: company.country,
-          industry: company.industry,
-          socialLinks: (company.socialLinks ?? []).map((link) => ({
-            platform: link.platform,
-            url: link.url
-          })),
-          status: company.status
-        };
-
+      .subscribe({
+        next: company => {
+          this.company = company;
+          this.form = {
+            name: company.name,
+            description: company.description,
+            phoneNumber: company.phoneNumber,
+            address: company.address,
+            country: company.country,
+            industry: company.industry,
+            socialLinks:
+              (company.socialLinks ?? [])
+                .map(link => ({
+                  platform: link.platform,
+                  url: link.url
+                })),
+            status: company.status
+          };
+        },
+        error: err => {
+          console.error(err);
+          this.showMessage(
+            "Failed to load company",
+            true
+          );
+        }
       });
   }
 
-  message: string | null = null;
-
-  isError: boolean = false;
-
   save() {
-    this.companyService.updateCompany(this.companyId, this.form).subscribe({
-      next: (updated) => {
-        this.company = updated;
-        this.loadCompany();
-        this.message = 'Company updated successfully';
-        this.isError = false;
-        setTimeout(() => this.message = null, 2500);
-      },
-
-      error: () => {
-        this.message = 'Something went wrong, please try again';
-        this.isError = true;
-        setTimeout(() => this.message = null, 2500);
-      }
-
-    });
-  }
-
-  cancel() {
-    this.router.navigate(['/admin/companies']);
-  }
-
-  onLogoSelected(event: any) {
-
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
+    if (this.loading) return;
+    this.loading = true;
     this.companyService
-      .uploadLogo(this.companyId, file)
-      .subscribe(() => this.loadCompany());
+      .updateCompany(
+        this.companyId,
+        this.form,
+        this.selectedLogo,
+        this.selectedBanner
+      )
+      .subscribe({
+        next: updated => {
+          this.company = updated;
+          this.selectedLogo = undefined;
+          this.selectedBanner = undefined;
+          this.loading = false;
+          this.showMessage("Company updated successfully", false);
+        },
+        error: err => {
+          console.error(err);
+          this.loading = false;
+          this.showMessage("Something went wrong", true);
+        }
+      });
   }
 
-  onBannerSelected(event: any) {
+  onLogoSelected(event: Event) {
+    const input =
+      event.target as HTMLInputElement;
 
-    const file = event.target.files?.[0];
+    const file =
+      input.files?.[0];
 
-    if (!file) return;
-
-    this.companyService
-      .uploadBanner(this.companyId, file)
-      .subscribe(() => this.loadCompany());
+    if (file) {
+      this.selectedLogo = file;
+    }
   }
 
-  deleteLogo() {
-    this.companyService
-      .deleteLogo(this.companyId)
-      .subscribe(() => this.loadCompany());
-  }
+  onBannerSelected(event: Event) {
+    const input =
+      event.target as HTMLInputElement;
 
-  deleteBanner() {
-    this.companyService
-      .deleteBanner(this.companyId)
-      .subscribe(() => this.loadCompany());
+    const file =
+      input.files?.[0];
+
+    if (file) {
+      this.selectedBanner = file;
+    }
   }
 
   addSocialLink() {
@@ -145,6 +160,20 @@ export class EditCompanyComponent implements OnInit {
   }
 
   removeSocialLink(index: number) {
-    this.form.socialLinks.splice(index, 1);
+    this.form.socialLinks.splice(index,1);
   }
+
+  cancel() {
+    this.router.navigate(['/admin/companies']);
+  }
+
+  private showMessage(text: string, error: boolean) {
+    this.message = text;
+    this.isError = error;
+
+    setTimeout(() => {
+      this.message = null;
+    },2500);
+  }
+
 }

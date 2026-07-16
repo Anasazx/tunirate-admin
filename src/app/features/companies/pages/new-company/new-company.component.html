@@ -66,6 +66,30 @@
       </select>
     </div>
 
+    <!-- Logo -->
+    <div>
+      <label class="text-sm font-medium">
+        Company Logo
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        (change)="onLogoSelected($event)"
+        class="w-full border rounded px-3 py-2">
+    </div>
+
+    <!-- Banner -->
+    <div>
+      <label class="text-sm font-medium">
+        Company Banner
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        (change)="onBannerSelected($event)"
+        class="w-full border rounded px-3 py-2">
+    </div>
+
     <!-- Status -->
     <div>
       <label class="text-sm font-medium">Status</label>
