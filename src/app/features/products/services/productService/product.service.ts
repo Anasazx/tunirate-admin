@@ -5,14 +5,14 @@ import { Observable } from 'rxjs';
 import { ProductResponse } from '../../models/productDTO/productResponse.model';
 import { DetailedProductResponse } from '../../models/productDTO/detailedProductResponse.model';
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
+import {CompanyStatus} from '../../../companies/enums/companyStatus.enum.model';
+import {ProductStatus} from '../../enums/productStatus.enum.model';
 
 
 
 @Injectable({
   providedIn: 'root'
 })
-
-
 
 export class ProductService {
 
@@ -22,8 +22,21 @@ export class ProductService {
     this.productUrl = this.sharedService.publicUrl + "/product"
   }
 
-  updateProductAsAdmin(productId: number, payload: ProductRequest): Observable<DetailedProductResponse> {
-    return this.http.put<DetailedProductResponse>(`${this.productUrl.toString()}/${productId}`, payload);
+  updateProductAsAdmin(id: number, payload: ProductRequest, images?: File[]): Observable<DetailedProductResponse> {
+
+    const formData = new FormData();
+
+    formData.append('data', new Blob(
+        [JSON.stringify(payload)], { type: 'application/json' }
+      )
+    );
+
+    if (images && images.length > 0) {images.forEach(image => {
+        formData.append('images', image);
+      });
+    }
+
+    return this.http.put<DetailedProductResponse>(`${this.productUrl}/${id}`, formData);
   }
 
   createProductAsAdmin(payload: ProductRequest, images?: File[]): Observable<DetailedProductResponse> {
@@ -60,9 +73,8 @@ export class ProductService {
     return this.http.get<DetailedProductResponse>(`${this.productUrl.toString()}/op/${productId}/details`);
   }
 
-  archiveProductAsAdmin(productId: number): Observable<void> {
-    return this.http.post<void>(`${this.productUrl}/op/${productId}/archive`, {});
+  updateProductStatusAsAdmin(productId: number, status: ProductStatus): Observable<void> {
+    return this.http.patch<void>(`${this.productUrl}/op/${productId}/status`, status);
   }
-
 
 }

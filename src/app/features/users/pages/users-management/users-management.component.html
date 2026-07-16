@@ -47,7 +47,7 @@
         <tr>
           <th class="px-5 py-3">Name</th>
           <th class="px-5 py-3">Email</th>
-          <th class="px-5 py-3">Role</th>
+          <th class="px-5 py-3">status</th>
           <th class="px-5 py-3">Created</th>
           <th class="px-5 py-3 text-right">Actions</th>
         </tr>
@@ -63,14 +63,10 @@
 
           <td class="px-5 py-4 text-gray-700">{{ u.email }}</td>
 
-          <td class="px-5 py-4">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold"
-                  [ngClass]="u.globalRole === 'ADMIN'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-gray-700'">
-              {{ u.globalRole }}
-            </span>
-          </td>
+          <td class="px-5 py-4 text-gray-700">status; to fix later!</td>
+
+
+
 
           <td class="px-5 py-4 text-sm text-gray-500">
             {{ u.createdAt | date:'medium' }}

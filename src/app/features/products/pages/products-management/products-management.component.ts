@@ -91,7 +91,7 @@ export class ProductsManagementComponent implements OnInit {
 
     const id = this.productToArchive.id;
 
-    this.productService.archiveProductAsAdmin(id).subscribe({
+    this.productService.updateProductStatusAsAdmin(id, ProductStatus.ARCHIVED).subscribe({
       next: () => {
         this.products = this.products.map(p =>
           p.id === id

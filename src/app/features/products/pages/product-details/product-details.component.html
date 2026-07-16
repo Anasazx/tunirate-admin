@@ -63,8 +63,11 @@
           <img
             *ngFor="let img of product.images"
             [src]="sharedService.getImageUrl(img.url)"
-            class="h-20 w-20 rounded-xl border object-cover cursor-pointer hover:border-blue-500 hover:scale-105 transition">
-
+            (click)="selectImage(img.url)"
+            class="h-20 w-20 rounded-xl border object-cover cursor-pointer transition"
+            [ngClass]="{
+              'border-blue-600 ring-2 ring-blue-300': mainImage === img.url
+            }">
           <p *ngIf="product.images.length == 0" class="leading-7 text-slate-600">No images yet</p>
 
         </div>

@@ -14,13 +14,9 @@
       </h1>
 
       <div class="flex items-center gap-2 mt-3 text-sm text-slate-500">
-
         <span>{{ product.companyName }}</span>
-
         <span>•</span>
-
         <span>#{{ product.id }}</span>
-
         <span
           class="rounded-full px-3 py-1 text-xs font-medium"
           [ngClass]="{
@@ -29,43 +25,36 @@
             'bg-red-100 text-red-700': product.status === 'REJECTED',
             'bg-slate-200 text-slate-700': product.status === 'ARCHIVED'
           }">
-
           {{ product.status }}
-
         </span>
-
       </div>
-
     </div>
 
     <!-- ACTIONS -->
     <div class="flex gap-2">
-
       <button
         (click)="back()"
         class="rounded-xl border px-4 py-2 text-sm hover:bg-slate-50">
-
         Cancel
-
       </button>
-
       <button
         (click)="save()"
         [disabled]="saving"
         class="rounded-xl bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
-
         {{ saving ? 'Saving...' : 'Save Changes' }}
-
       </button>
-
     </div>
-
   </div>
 
-  <!-- GRID -->
+  <!-- ERROR -->
+  <div *ngIf="error" class="p-4 rounded-xl bg-red-50 text-red-700 border">
+    {{ error }}
+  </div>
+
+  <!-- MAIN GRID -->
   <div class="grid lg:grid-cols-3 gap-8">
 
-    <!-- LEFT -->
+    <!-- LEFT SIDE -->
     <div class="lg:col-span-2 space-y-6">
 
       <!-- PRODUCT FORM -->
@@ -74,53 +63,64 @@
         <h3 class="font-semibold text-slate-900">
           Product Details
         </h3>
-
         <input
           [(ngModel)]="product.name"
           placeholder="Product name"
           class="w-full rounded-xl border bg-slate-50 px-4 py-3">
-
         <select
           [(ngModel)]="selectedSubcategoryId"
           class="w-full rounded-xl border bg-slate-50 px-4 py-3">
-
-          <option [ngValue]="null">Select subcategory</option>
-
-          <option *ngFor="let s of subcategories" [ngValue]="s.id">
+          <option [ngValue]="null">
+            Select subcategory
+          </option>
+          <option
+            *ngFor="let s of subcategories"
+            [ngValue]="s.id">
             {{ s.name }}
           </option>
-
         </select>
-
         <select
           [(ngModel)]="product.companyId"
           class="w-full rounded-xl border bg-slate-50 px-4 py-3">
-
-          <option [ngValue]="null">Select company</option>
-
-          <option *ngFor="let c of companies" [ngValue]="c.id">
+          <option [ngValue]="null">
+            Select company
+          </option>
+          <option
+            *ngFor="let c of companies"
+            [ngValue]="c.id">
             {{ c.name }}
           </option>
-
         </select>
 
-        <!-- STATUS SELECT -->
+        <!-- STATUS -->
         <div>
-          <label class="text-sm text-slate-500 mb-1 block">
+
+          <label class="text-sm text-slate-500 block mb-1">
             Product Status
           </label>
 
+
           <select
             [(ngModel)]="product.status"
-            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 focus:border-sky-500 outline-none">
+            class="w-full rounded-xl border bg-white px-4 py-3">
 
-            <option value="DRAFT">Draft</option>
-            <option value="PENDING_REVIEW">Pending Review</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="ARCHIVED">Archived</option>
+
+            <option [ngValue]="null">
+              Select status
+            </option>
+
+
+            <option
+              *ngFor="let status of productStatusValues"
+              [ngValue]="status">
+
+              {{ status.replace('_', ' ') }}
+
+            </option>
+
 
           </select>
+
         </div>
 
         <textarea
@@ -128,104 +128,104 @@
           rows="6"
           placeholder="Description..."
           class="w-full rounded-xl border bg-slate-50 px-4 py-3">
-
         </textarea>
-
       </div>
-
-
-
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT SIDE -->
     <div class="space-y-6">
 
-      <!-- MEDIA MANAGER -->
+      <!-- MAIN IMAGE -->
       <div class="bg-white border rounded-2xl p-6 space-y-4">
-
         <h3 class="font-semibold">
-          Product Image
+          Product Images
         </h3>
 
+        <!-- MAIN IMAGE -->
         <div class="rounded-xl border overflow-hidden bg-slate-50">
-
           <img
+            *ngIf="mainImageUrl"
             [src]="sharedService.getImageUrl(mainImageUrl)"
-            class="w-full h-100 object-contain p-4">
-
+            class="w-full h-80 object-contain p-4">
+          <div
+            *ngIf="!mainImageUrl"
+            class="h-80 flex items-center justify-center text-slate-400">
+            No image
+          </div>
         </div>
 
+        <!-- FILE INPUT -->
         <input
+          #fileInput
           type="file"
+          multiple
+          accept="image/*"
           (change)="onFileSelected($event)"
           class="w-full border rounded-xl p-3">
 
+        <!-- PREVIEW -->
+        <div
+          *ngIf="previewUrls.length"
+          class="grid grid-cols-3 gap-3">
+          <div
+            *ngFor="let url of previewUrls; let i=index"
+            class="relative border rounded-xl overflow-hidden">
+            <img
+              [src]="url"
+              class="h-24 w-full object-cover">
+            <button
+              (click)="removeSelectedFile(i)"
+              class="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2">
+              ×
+            </button>
+          </div>
+        </div>
         <button
-          (click)="uploadFile()"
-          [disabled]="imageSaving || !selectedFile"
-          class="w-full rounded-xl bg-indigo-600 py-2 text-white hover:bg-indigo-700 disabled:opacity-50">
-
-          {{ imageSaving ? 'Uploading...' : 'Upload Image' }}
-
+          (click)="save()"
+          [disabled]="saving || selectedFiles.length === 0"
+          class="w-full rounded-xl bg-indigo-600 py-2 text-white disabled:opacity-50">
+          {{ saving ? 'Uploading...' : 'Save Images & Product' }}
         </button>
-
       </div>
 
       <!-- GALLERY -->
       <div class="bg-white border rounded-2xl p-6">
-
         <h3 class="font-semibold mb-4">
           Gallery
         </h3>
-
         <div class="grid grid-cols-2 gap-3">
-
-          <p *ngIf="product.images.length == 0">No images yet!</p>
-
-          <div *ngFor="let img of product.images"
-               class="relative rounded-xl overflow-hidden border">
-
+          <p *ngIf="product.images.length === 0"
+             class="text-slate-400">
+            No images yet
+          </p>
+          <div
+            *ngFor="let img of product.images"
+            class="relative rounded-xl overflow-hidden border">
             <img
               [src]="sharedService.getImageUrl(img.url)"
               class="h-28 w-full object-cover">
-
-            <div class="absolute inset-0 bg-black/0 hover:bg-black/40 transition flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
-
+            <div
+              class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center gap-2">
               <button
                 (click)="setMainImage(img.id!)"
-                class="bg-white px-2 py-1 text-xs rounded">
-
+                class="bg-white px-3 py-1 rounded text-xs">
                 Main
-
               </button>
-
               <button
                 (click)="deleteImage(img.id!)"
-                class="bg-red-500 text-white px-2 py-1 text-xs rounded">
-
+                class="bg-red-500 text-white px-3 py-1 rounded text-xs">
                 Delete
-
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
 </div>
 
-<!-- LOADING -->
 <ng-template #loadingTpl>
-
   <div class="h-[60vh] flex items-center justify-center text-slate-400">
     Loading product...
   </div>
-
 </ng-template>
