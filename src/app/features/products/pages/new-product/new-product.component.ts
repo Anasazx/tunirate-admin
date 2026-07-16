@@ -1,34 +1,41 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
+
 import { CompanyResponse } from '../../../companies/models/companyDTO/companyResponse.model';
 import { SubcategoryResponse } from '../../../category/models/subcategoryDTO/subcategoryResponse.model';
+
 import { ProductService } from '../../services/productService/product.service';
 import { CompanyService } from '../../../companies/services/companyService/company.service';
 import { SubcategoryService } from '../../../category/services/subcategoryService/subcategory.service';
+
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
-import {ProductStatus} from '../../enums/productStatus.enum.model';
-
-
+import { ProductStatus } from '../../enums/productStatus.enum.model';
 
 @Component({
   selector: 'app-new-product',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './new-product.component.html',
   styleUrl: './new-product.component.css'
 })
 export class NewProductComponent implements OnInit {
+
   name = '';
   description = '';
+
   selectedSubcategoryId: number | null = null;
   selectedCompanyId: number | null = null;
 
   status: ProductStatus | null = null;
+
   productStatusValues = Object.values(ProductStatus);
 
   companies: CompanyResponse[] = [];
   subcategories: SubcategoryResponse[] = [];
+
+  images: File[] = [];
 
   loading = false;
   saving = false;
@@ -48,52 +55,75 @@ export class NewProductComponent implements OnInit {
 
   loadCompanies() {
     this.companyService.getAllCompanies().subscribe({
-      next: (res) => this.companies = res,
-      error: (err) => { console.error(err); }
+      next: res => this.companies = res,
+      error: err => console.error(err)
     });
   }
 
   loadSubcategories() {
     this.subcategoryService.getAllSubcategories().subscribe({
-      next: (res) => this.subcategories = res,
-      error: (err) => { console.error(err); }
+      next: res => this.subcategories = res,
+      error: err => console.error(err)
     });
   }
 
+  onImagesSelected(event: Event): void {
+
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files) {
+      return;
+    }
+
+    this.images = Array.from(input.files);
+
+  }
+
   save() {
+
     this.error = null;
-    if (!this.name || this.name.trim().length === 0) {
+
+    if (!this.name.trim()) {
       this.error = 'Name is required';
       return;
     }
+
     if (!this.selectedCompanyId) {
       this.error = 'Select a company';
       return;
     }
 
     const payload: ProductRequest = {
+
       name: this.name,
       description: this.description || null,
+
       subcategoryId: this.selectedSubcategoryId ? String(this.selectedSubcategoryId) : '',
       companyId: this.selectedCompanyId,
-      status: this.status || null
+      status: this.status
     };
 
     this.saving = true;
-    this.productService.createProductAsAdmin(payload).subscribe({
-      next: (res) => {
-        console.log("this is the payload: ", payload);
 
-        this.saving = false;
-        // navigate to edit page for further actions (images)
-        this.router.navigate(['/admin/products', res.id]);
-      },
-      error: (err) => {
-        console.error('Create failed', err);
-        this.error = 'Failed to create product';
-        this.saving = false;
-      }
-    });
+    this.productService
+      .createProductAsAdmin(payload, this.images)
+      .subscribe({
+        next: res => {
+          this.saving = false;
+          this.router.navigate(['/admin/products', res.id]);
+        },
+        error: err => {
+          console.error(err);
+          this.error = 'Failed to create product';
+          this.saving = false;
+        }
+      });
+
   }
+
+  cancel(){
+
+  }
+
 
 }

@@ -1,54 +1,187 @@
 <div class="p-6">
-	<div class="flex items-center justify-between mb-6">
-		<div>
-			<h2 class="text-2xl font-bold">New Product</h2>
-			<p class="text-sm text-gray-500">Create a new product</p>
-		</div>
-	</div>
 
-	<div *ngIf="error" class="p-4 border rounded-lg bg-red-50 text-red-700 mb-4">{{ error }}</div>
-
-	<div class="bg-white border rounded-lg p-5 space-y-4">
-		<div>
-			<label class="block text-sm font-medium mb-1">Name</label>
-			<input [(ngModel)]="name" class="w-full border px-3 py-2 rounded-lg" />
-		</div>
-
-		<div>
-			<label class="block text-sm font-medium mb-1">Subcategory</label>
-			<select [(ngModel)]="selectedSubcategoryId" class="w-full border px-3 py-2 rounded-lg">
-				<option [ngValue]="null">Select subcategory</option>
-				<option *ngFor="let s of subcategories" [ngValue]="s.id">{{ s.name }}</option>
-			</select>
-		</div>
-
-		<div>
-			<label class="block text-sm font-medium mb-1">Company</label>
-			<select [(ngModel)]="selectedCompanyId" class="w-full border px-3 py-2 rounded-lg">
-				<option [ngValue]="null">Select company</option>
-				<option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
-			</select>
-		</div>
-
-		<div>
-			<label class="block text-sm font-medium mb-1">Description</label>
-			<textarea [(ngModel)]="description" rows="4" class="w-full border px-3 py-2 rounded-lg"></textarea>
-		</div>
-
+  <div class="flex items-center justify-between mb-6">
     <div>
-      <label class="block text-sm font-medium mb-1">Status</label>
-      <select [(ngModel)]="status"
-              class="w-full border px-3 py-2 rounded-lg">
-        <option [ngValue]="null">Select status</option>
-        <option *ngFor="let s of productStatusValues" [ngValue]="s">
-          {{ s }}
+      <h2 class="text-2xl font-bold">New Product</h2>
+      <p class="text-sm text-gray-500">
+        Create a new product
+      </p>
+    </div>
+  </div>
+
+  <div
+    *ngIf="error"
+    class="p-4 border rounded-lg bg-red-50 text-red-700 mb-4">
+    {{ error }}
+  </div>
+
+  <div class="bg-white border rounded-lg p-5 space-y-4">
+
+    <!-- Name -->
+    <div>
+      <label class="block text-sm font-medium mb-1">
+        Name
+      </label>
+
+      <input
+        [(ngModel)]="name"
+        class="w-full border px-3 py-2 rounded-lg">
+    </div>
+
+    <!-- Subcategory -->
+    <div>
+      <label class="block text-sm font-medium mb-1">
+        Subcategory
+      </label>
+
+      <select
+        [(ngModel)]="selectedSubcategoryId"
+        class="w-full border px-3 py-2 rounded-lg">
+
+        <option [ngValue]="null">
+          Select subcategory
         </option>
+
+        <option
+          *ngFor="let s of subcategories"
+          [ngValue]="s.id">
+
+          {{ s.name }}
+
+        </option>
+
       </select>
     </div>
 
-		<div class="flex items-center gap-3">
-			<button (click)="save()" [disabled]="saving" class="bg-blue-600 text-white px-4 py-2 rounded-lg">{{ saving ? 'Creating...' : 'Create' }}</button>
-			<a routerLink="/products" class="px-4 py-2 border rounded-lg">Cancel</a>
-		</div>
-	</div>
+    <!-- Company -->
+    <div>
+      <label class="block text-sm font-medium mb-1">
+        Company
+      </label>
+
+      <select
+        [(ngModel)]="selectedCompanyId"
+        class="w-full border px-3 py-2 rounded-lg">
+
+        <option [ngValue]="null">
+          Select company
+        </option>
+
+        <option
+          *ngFor="let c of companies"
+          [ngValue]="c.id">
+
+          {{ c.name }}
+
+        </option>
+
+      </select>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="block text-sm font-medium mb-1">
+        Description
+      </label>
+
+      <textarea
+        [(ngModel)]="description"
+        rows="4"
+        class="w-full border px-3 py-2 rounded-lg">
+      </textarea>
+    </div>
+
+    <!-- Status -->
+    <div>
+      <label class="block text-sm font-medium mb-1">
+        Status
+      </label>
+
+      <select
+        [(ngModel)]="status"
+        class="w-full border px-3 py-2 rounded-lg">
+
+        <option [ngValue]="null">
+          Select status
+        </option>
+
+        <option
+          *ngFor="let s of productStatusValues"
+          [ngValue]="s">
+
+          {{ s }}
+
+        </option>
+
+      </select>
+    </div>
+
+    <!-- Images -->
+    <div>
+
+      <label class="block text-sm font-medium mb-2">
+        Product Images
+      </label>
+
+      <input
+        type="file"
+        multiple
+        accept="image/*"
+        (change)="onImagesSelected($event)"
+        class="w-full border rounded-lg px-3 py-2">
+
+      <p class="text-xs text-gray-500 mt-2">
+        The first selected image will automatically become the main image.
+      </p>
+
+      <div
+        *ngIf="images.length > 0"
+        class="mt-3 space-y-1">
+
+        <div
+          *ngFor="let image of images; let i = index"
+          class="text-sm text-gray-700">
+
+          <span
+            *ngIf="i === 0"
+            class="font-semibold text-blue-600">
+
+            ★ Main
+
+          </span>
+
+          {{ image.name }}
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex items-center gap-3">
+
+      <button
+        (click)="save()"
+        [disabled]="saving"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+
+        {{ saving ? 'Creating...' : 'Create' }}
+
+      </button>
+
+      <button
+        type="button"
+        (click)="cancel()"
+        routerLink="/products"
+        class="px-4 py-2 border rounded-lg">
+
+        Cancel
+
+      </button>
+
+    </div>
+
+  </div>
+
 </div>
