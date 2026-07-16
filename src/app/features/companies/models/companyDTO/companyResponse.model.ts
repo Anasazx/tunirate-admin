@@ -14,7 +14,6 @@ export interface CompanyResponse {
   bannerUrl?: string | null;
 
   phoneNumber: string | null;
-  websiteUrl: string | null;
   socialLinks: CompanySocialLinkResponse[] | null;
   address: string | null;
   country: Country;

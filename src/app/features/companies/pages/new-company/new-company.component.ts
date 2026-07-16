@@ -22,7 +22,6 @@ export class NewCompanyComponent {
     name: '',
     description: '',
     phoneNumber: null,
-    websiteUrl: null,
     address: null,
     country: Country.TUNISIA,
     industry: Industry.OTHER,

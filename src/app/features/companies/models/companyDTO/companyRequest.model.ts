@@ -7,7 +7,6 @@ export interface CompanyRequest {
   name: string;
   description?: string | null;
   phoneNumber: string | null;
-  websiteUrl : string | null;
   address : string | null;
   country : Country;
   industry : Industry;
