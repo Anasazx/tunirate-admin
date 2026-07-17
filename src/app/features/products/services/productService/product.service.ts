@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 import { ProductResponse } from '../../models/productDTO/productResponse.model';
 import { DetailedProductResponse } from '../../models/productDTO/detailedProductResponse.model';
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
-import {CompanyStatus} from '../../../companies/enums/companyStatus.enum.model';
 import {ProductStatus} from '../../enums/productStatus.enum.model';
 
 
@@ -74,7 +73,7 @@ export class ProductService {
   }
 
   updateProductStatusAsAdmin(productId: number, status: ProductStatus): Observable<void> {
-    return this.http.patch<void>(`${this.productUrl}/op/${productId}/status`, status);
+    return this.http.patch<void>(`${this.productUrl}/op/${productId}/status`, {status: status});
   }
 
 }

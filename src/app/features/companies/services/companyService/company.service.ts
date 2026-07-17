@@ -90,7 +90,7 @@ export class CompanyService {
   }
 
   updateCompanyStatus(companyId: number, status: CompanyStatus): Observable<void> {
-    return this.http.patch<void>(`${this.companyUrl}/${companyId}/status`, status);
+    return this.http.patch<void>(`${this.companyUrl}/${companyId}/status`, {status: status});
   }
 
 }
