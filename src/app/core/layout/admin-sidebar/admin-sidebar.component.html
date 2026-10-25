@@ -7,12 +7,9 @@
        [class.-translate-x-full]="!open()">
 
   <div class="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5">
-    <a routerLink="/" class="flex items-center gap-2.5">
-      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">R</span>
-      <span>
-        <span class="block text-sm font-semibold leading-tight text-slate-900">ReviewHood</span>
-        <span class="block text-xs text-slate-500">Admin</span>
-      </span>
+    <a routerLink="/" class="flex items-end gap-2" aria-label="ReviewHood Admin">
+      <img src="logo.png" alt="ReviewHood" class="h-7 w-auto" />
+      <span class="mb-0.5 rounded bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">Admin</span>
     </a>
     <button type="button" class="btn-ghost btn-sm lg:hidden" (click)="close.emit()" aria-label="Close menu">
       <lucide-icon [img]="X" [size]="18" />

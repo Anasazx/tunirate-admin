@@ -15,7 +15,8 @@
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-sm { @apply px-2.5 py-1.5 text-xs; }
-  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700; }
+  /* Forest ink, so everyday primary actions never look like the green "Approve" */
+  .btn-primary { @apply btn bg-ink text-white hover:bg-ink-light; }
   .btn-secondary { @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
   .btn-ghost { @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
   .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
