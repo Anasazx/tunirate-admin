@@ -104,11 +104,20 @@
             </section>
             <section class="card p-5">
               <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900"><lucide-icon [img]="icons.ShieldCheck" [size]="16" class="text-slate-400" /> Verification</h2>
-              @if (c.verifiedBy) {
-                <p class="mt-2 text-sm text-slate-600">Verified by <span class="font-medium text-slate-900">{{ c.verifiedBy.name }}</span>
-                  @if (c.verifiedAt) { on {{ c.verifiedAt | date: 'mediumDate' }} }</p>
+              @if (c.verifiedAt) {
+                <p class="mt-2 text-sm text-slate-600">Verified
+                  @if (c.verifiedBy) { by <span class="font-medium text-slate-900">{{ c.verifiedBy.name }}</span> }
+                  on {{ c.verifiedAt | date: 'mediumDate' }}. The public site shows a "Verified" badge.</p>
+                <button type="button" class="btn-secondary btn-sm mt-3" [disabled]="statusBusy()" (click)="setVerified(false)">Remove verification</button>
               } @else {
-                <p class="mt-2 text-sm text-slate-500">Not verified yet.</p>
+                <p class="mt-2 text-sm text-slate-500">Not verified. Verify the company once you've checked it's genuine; customers then see a "Verified" badge.</p>
+                @if (c.status === 'ACTIVE') {
+                  <button type="button" class="btn-success btn-sm mt-3" [disabled]="statusBusy()" (click)="setVerified(true)">
+                    <lucide-icon [img]="icons.ShieldCheck" [size]="14" /> Verify company
+                  </button>
+                } @else {
+                  <p class="mt-2 text-xs text-slate-400">Activate the company first.</p>
+                }
               }
             </section>
           </aside>

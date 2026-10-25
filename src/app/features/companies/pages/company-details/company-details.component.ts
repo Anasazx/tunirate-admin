@@ -169,6 +169,31 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  async setVerified(verified: boolean) {
+    const c = this.company();
+    if (!c) return;
+    if (!verified) {
+      const ok = await this.confirm.ask({
+        title: `Remove verification from ${c.name}?`,
+        message: 'The "Verified" badge disappears from the public site.',
+        confirmLabel: 'Remove', tone: 'danger',
+      });
+      if (!ok) return;
+    }
+    this.statusBusy.set(true);
+    this.companyService.setVerified(c.id, verified).subscribe({
+      next: () => {
+        this.statusBusy.set(false);
+        this.toast.success(verified ? `${c.name} is now verified.` : `${c.name} is no longer verified.`);
+        this.loadCompany();
+      },
+      error: err => {
+        this.statusBusy.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not change the verification.'));
+      }
+    });
+  }
+
   // ── Products ──
 
   loadProducts(page: number) {

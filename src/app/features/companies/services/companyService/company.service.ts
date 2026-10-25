@@ -50,6 +50,11 @@ export class CompanyService {
     return this.http.put<CompanySummaryResponse>(`${this.companyUrl}/${id}`, this.toFormData(payload, logo, banner));
   }
 
+  // Verified companies get a "Verified" badge on the public site
+  setVerified(companyId: number, verified: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.companyUrl}/${companyId}/verification`, { verified });
+  }
+
   updateCompanyStatus(companyId: number, status: CompanyStatus): Observable<void> {
     return this.http.patch<void>(`${this.companyUrl}/${companyId}/status`, { status });
   }
