@@ -5,21 +5,30 @@ import { Injectable } from '@angular/core';
 })
 export class SharedService {
 
-  publicUrl = "http://localhost:8080"
-
-  uploadPublicUrl = "http://localhost:8080/uploads"
-
-  constructor() { }
 
 
+  localDev = true;
 
-    //helper
-    getImageUrl(imageUrl?: String | null): string {
-        if (!imageUrl) {
-            return 'https://placehold.co/600x400/EEE/31343C';
-        }
-        return `${this.uploadPublicUrl}/${imageUrl}`;
+  publicUrl!: string;
+  uploadPublicUrl!: string;
+
+  constructor() {
+    if (this.localDev) {
+      this.publicUrl = "http://localhost:8080";
+      this.uploadPublicUrl = "http://localhost:9000/uploads";
     }
+    else {
+      this.publicUrl = "https://reviewhood.tech/api";
+      this.uploadPublicUrl = "https://reviewhood.tech/uploads";
+    }
+  }
 
-  
+  getImageUrl(imageUrl?: string | null): string {
+    if (!imageUrl) {
+      return 'https://placehold.co/600x400/EEE/31343C';
+    }
+    return `${this.uploadPublicUrl}/${imageUrl}`;
+  }
+
+
 }

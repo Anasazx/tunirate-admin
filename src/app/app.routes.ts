@@ -13,16 +13,18 @@ import { EditProductComponent } from './features/products/pages/edit-product/edi
 import {ProductDetailsComponent} from './features/products/pages/product-details/product-details.component';
 import {CompanyDetailsComponent} from './features/companies/pages/company-details/company-details.component';
 import {NewCompanyComponent} from './features/companies/pages/new-company/new-company.component';
+import { adminGuard, guestGuard } from './core/guards/auth.guard';
 
 
 export const routes: Routes = [
 
-  { path: 'auth/login', component: LoginComponent },
-  { path: 'auth/register', component: RegisterComponent },
+  { path: 'auth/login', component: LoginComponent, canActivate: [guestGuard] },
+  { path: 'auth/register', component: RegisterComponent, canActivate: [guestGuard] },
 
   {
     path: '',
     component: AdminMainComponent,
+    canActivate: [adminGuard],
     children: [
       { path: '', component: DashboardComponent },
       { path: 'products', component: ProductsManagementComponent },

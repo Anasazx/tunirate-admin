@@ -27,6 +27,11 @@ export class LoginComponent {
     this.auth.login({ email, password }).subscribe({
       next: () => {
         this.loading = false;
+        if (!this.auth.isAdmin()) {
+          this.auth.logout();
+          this.error = 'This account does not have admin access.';
+          return;
+        }
         this.router.navigate(['/']);
       },
       error: (err) => {

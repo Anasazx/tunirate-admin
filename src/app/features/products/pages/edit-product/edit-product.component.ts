@@ -173,7 +173,7 @@ export class EditProductComponent implements OnInit, OnDestroy {
           this.selectedFiles = [];
           this.clearPreview();
           this.saving = false;
-          this.router.navigate(['/admin/products']);
+          this.router.navigate(['/products']);
         },
         error: err => {
           console.error("Save failed", err);

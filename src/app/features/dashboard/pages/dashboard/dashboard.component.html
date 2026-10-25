@@ -3,7 +3,7 @@
   <!-- HEADER -->
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-    <p class="text-gray-600 mt-1">Welcome <span class="font-bold"> {{ username }} </span> to your admin dashboard</p>
+    <p class="text-gray-600 mt-1">Welcome <span class="font-bold">{{ username }}</span> to your admin dashboard</p>
   </div>
 
   <!-- LOADING -->
@@ -12,31 +12,97 @@
   </div>
 
   <!-- STATS -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <div *ngFor="let stat of stats"
          class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-
       <div class="flex items-center justify-between">
-
         <div>
           <p class="text-gray-600 text-sm">{{ stat.label }}</p>
-          <p class="text-2xl font-bold text-gray-900 mt-2">
-            {{ stat.value }}
-          </p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
         </div>
-
-
-        <lucide-icon
-
-          [img]="stat.icon"
-
-          class="w-10 h-10 text-gray-500">
-
-        </lucide-icon>
-
+        <lucide-icon [img]="stat.icon" class="w-10 h-10 text-gray-500"></lucide-icon>
       </div>
+    </div>
+  </div>
 
+  <!-- OVERVIEW CHARTS -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    <!-- Bar chart: entity counts overview -->
+    <div class="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Platform Overview</h2>
+        <p class="text-sm text-gray-500">Total counts across the platform</p>
+      </div>
+      <div class="h-72">
+        <canvas baseChart
+                [data]="barChartData"
+                [options]="barChartOptions"
+                type="bar">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Doughnut chart: company status -->
+    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Company Status</h2>
+        <p class="text-sm text-gray-500">Active vs inactive</p>
+      </div>
+      <div class="h-72">
+        <canvas baseChart
+                [data]="doughnutChartData"
+                [options]="doughnutChartOptions"
+                type="doughnut">
+        </canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GROWTH OVER TIME -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Users Over Time</h2>
+        <p class="text-sm text-gray-500">Last 30 days</p>
+      </div>
+      <div class="h-64">
+        <canvas baseChart
+                [data]="usersLineChartData"
+                [options]="lineChartOptions"
+                type="line">
+        </canvas>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Companies Over Time</h2>
+        <p class="text-sm text-gray-500">Last 30 days</p>
+      </div>
+      <div class="h-64">
+        <canvas baseChart
+                [data]="companiesLineChartData"
+                [options]="lineChartOptions"
+                type="line">
+        </canvas>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+      <div class="mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Reviews Over Time</h2>
+        <p class="text-sm text-gray-500">Last 30 days</p>
+      </div>
+      <div class="h-64">
+        <canvas baseChart
+                [data]="reviewsLineChartData"
+                [options]="lineChartOptions"
+                type="line">
+        </canvas>
+      </div>
     </div>
 
   </div>

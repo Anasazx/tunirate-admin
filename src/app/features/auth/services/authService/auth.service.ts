@@ -85,7 +85,9 @@ export class AuthService {
   private loadFromStorage(): AuthResponse | null {
     try {
       const raw = localStorage.getItem(this.tokenKey);
-      return raw ? JSON.parse(raw) as AuthResponse : null;
+      const stored = raw ? JSON.parse(raw) as AuthResponse : null;
+      // Sessions saved before the role was part of the login response must sign in again
+      return stored?.role?.toLowerCase() === 'admin' ? stored : null;
     } catch (e) {
       console.error('Failed to read auth token from storage', e);
       return null;

@@ -32,7 +32,7 @@ export class UserService {
 
   searchUsers(query: string): Observable<UserResponse[]> {
     return this.http.get<UserResponse[]>(
-      `${this.userUrl}/search?q=${query}`
+      `${this.userUrl}/search?q=${encodeURIComponent(query)}`
     );
   }
 
