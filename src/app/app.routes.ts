@@ -1,47 +1,44 @@
 import { Routes } from '@angular/router';
 import { AdminMainComponent } from './core/layout/admin-main/admin-main.component';
-import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
-import { ProductsManagementComponent } from './features/products/pages/products-management/products-management.component';
-import { NewProductComponent } from './features/products/pages/new-product/new-product.component';
-import { CompanyManagementComponent } from './features/companies/pages/company-management/company-management.component';
-import { EditCompanyComponent } from './features/companies/pages/edit-company/edit-company.component';
-import { UsersManagementComponent } from './features/users/pages/users-management/users-management.component';
-import { CategoryManagementComponent } from './features/category/pages/category-management/category-management.component';
-import { LoginComponent } from './features/auth/pages/login/login.component';
-import { RegisterComponent } from './features/auth/pages/register/register.component';
-import { EditProductComponent } from './features/products/pages/edit-product/edit-product.component';
-import {ProductDetailsComponent} from './features/products/pages/product-details/product-details.component';
-import {CompanyDetailsComponent} from './features/companies/pages/company-details/company-details.component';
-import {NewCompanyComponent} from './features/companies/pages/new-company/new-company.component';
 import { adminGuard, guestGuard } from './core/guards/auth.guard';
 
-
+// Pages are lazy loaded so the first screen loads fast
 export const routes: Routes = [
 
-  { path: 'auth/login', component: LoginComponent, canActivate: [guestGuard] },
-  { path: 'auth/register', component: RegisterComponent, canActivate: [guestGuard] },
+  {
+    path: 'auth/login',
+    canActivate: [guestGuard],
+    title: 'Sign in · ReviewHood Admin',
+    loadComponent: () => import('./features/auth/pages/login/login.component').then(m => m.LoginComponent),
+  },
 
   {
     path: '',
     component: AdminMainComponent,
     canActivate: [adminGuard],
     children: [
-      { path: '', component: DashboardComponent },
-      { path: 'products', component: ProductsManagementComponent },
-      { path: 'products/new', component: NewProductComponent },
-      { path: 'products/details/:id', component: ProductDetailsComponent },
-      { path: 'products/:id', component: EditProductComponent },
-      { path: 'companies', component: CompanyManagementComponent },
-      { path: 'companies/new', component: NewCompanyComponent },
-      { path: 'companies/:id', component: EditCompanyComponent },
-      { path: 'companies/details/:id', component: CompanyDetailsComponent },
-      { path: 'categories', component: CategoryManagementComponent },
-      { path: 'users', component: UsersManagementComponent },
+      { path: '', title: 'Dashboard · ReviewHood Admin', loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+
+      { path: 'products', title: 'Products · ReviewHood Admin', loadComponent: () => import('./features/products/pages/products-management/products-management.component').then(m => m.ProductsManagementComponent) },
+      { path: 'products/new', title: 'New product · ReviewHood Admin', loadComponent: () => import('./features/products/pages/product-form/product-form.component').then(m => m.ProductFormComponent) },
+      { path: 'products/:id/edit', title: 'Edit product · ReviewHood Admin', loadComponent: () => import('./features/products/pages/product-form/product-form.component').then(m => m.ProductFormComponent) },
+      { path: 'products/:id', title: 'Product · ReviewHood Admin', loadComponent: () => import('./features/products/pages/product-details/product-details.component').then(m => m.ProductDetailsComponent) },
+
+      { path: 'companies', title: 'Companies · ReviewHood Admin', loadComponent: () => import('./features/companies/pages/company-management/company-management.component').then(m => m.CompanyManagementComponent) },
+      { path: 'companies/new', title: 'New company · ReviewHood Admin', loadComponent: () => import('./features/companies/pages/company-form/company-form.component').then(m => m.CompanyFormComponent) },
+      { path: 'companies/:id/edit', title: 'Edit company · ReviewHood Admin', loadComponent: () => import('./features/companies/pages/company-form/company-form.component').then(m => m.CompanyFormComponent) },
+      { path: 'companies/:id', title: 'Company · ReviewHood Admin', loadComponent: () => import('./features/companies/pages/company-details/company-details.component').then(m => m.CompanyDetailsComponent) },
+
+      { path: 'categories', title: 'Categories · ReviewHood Admin', loadComponent: () => import('./features/category/pages/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
+      { path: 'users', title: 'Users · ReviewHood Admin', loadComponent: () => import('./features/users/pages/users-management/users-management.component').then(m => m.UsersManagementComponent) },
+      { path: 'suggestions', title: 'Suggestions · ReviewHood Admin', loadComponent: () => import('./features/suggestions/pages/suggestions-management/suggestions-management.component').then(m => m.SuggestionsManagementComponent) },
+
+      // Old URLs, kept so existing links still work
+      { path: 'products/details/:id', redirectTo: 'products/:id' },
+      { path: 'companies/details/:id', redirectTo: 'companies/:id' },
     ],
   },
-  {
-    path: '**',
-    redirectTo: '/'
-  },
+
+  { path: '**', redirectTo: '' },
 
 ];

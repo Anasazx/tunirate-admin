@@ -16,8 +16,9 @@ export class SubcategoryService {
         this.subcategoryUrl = this.sharedService.publicUrl + '/subcategories';
     }
 
+    // Every subcategory of every category, with product counts (the public GET /subcategories is filtered)
     getAllSubcategories(): Observable<SubcategoryResponse[]> {
-        return this.http.get<SubcategoryResponse[]>(this.subcategoryUrl);
+        return this.http.get<SubcategoryResponse[]>(`${this.subcategoryUrl}/op`);
     }
 
     getSubcategoryById(id: number): Observable<SubcategoryResponse> {

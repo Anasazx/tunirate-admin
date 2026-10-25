@@ -1,297 +1,212 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { DashboardService } from '../../services/dashboardService/dashboard.service';
-import { AdminDashboardResponse } from '../../models/dashboardDTO/adminDashboardResponse.model';
-
-import { Users, Building2, CheckCircle, Package, Star, Clock } from 'lucide';
-import { LucideAngularModule } from 'lucide-angular';
-import { AuthService } from '../../../auth/services/authService/auth.service';
-
-import { BaseChartDirective } from 'ng2-charts';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LucideAngularModule, LucideIconData } from 'lucide-angular';
+import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
+
+import { DashboardService } from '../../services/dashboardService/dashboard.service';
+import { AdminDashboardResponse, TimeSeriesPoint } from '../../models/dashboardDTO/adminDashboardResponse.model';
+import { AuthService } from '../../../auth/services/authService/auth.service';
+import { ProductService } from '../../../products/services/productService/product.service';
+import { ProductResponse } from '../../../products/models/productDTO/productResponse.model';
+import { ProductStatus } from '../../../products/enums/productStatus.enum.model';
+import { SharedService } from '../../../../core/services/sharedService/shared.service';
+import { NavCountsService } from '../../../../core/services/navCounts.service';
+import { ToastService } from '../../../../core/ui/toast.service';
+import { apiErrorMessage } from '../../../../core/ui/api-error';
+import { humanize, timeAgo } from '../../../../core/ui/format';
+import { EmptyStateComponent } from '../../../../core/ui/empty-state.component';
+import { ArrowRight, Building2, Check, Lightbulb, MessageSquare, Package, RefreshCw, Star, Users, X } from '../../../../core/ui/icons';
+
+interface Kpi {
+  label: string;
+  value: number;
+  recent: number;
+  icon: LucideIconData;
+  link: string;
+}
+
+interface AttentionItem {
+  label: string;
+  description: string;
+  count: number;
+  icon: LucideIconData;
+  link: string;
+  query?: Record<string, string>;
+}
+
+// Categorical series colors, fixed order; checked with the dataviz palette validator
+// (colorblind-safe; the aqua is under 3:1 on white, so every series also shows its total as a label)
+const SERIES = {
+  users: '#2a78d6',
+  reviews: '#eb6834',
+  companies: '#1baf7a',
+};
+// Status colors are reserved for product states and always shown with their label
+const STATUS_COLORS: Record<string, string> = {
+  PUBLISHED: '#0ca30c',
+  PENDING_REVIEW: '#fab219',
+  REJECTED: '#d03b3b',
+  ARCHIVED: '#94a3b8',
+};
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, BaseChartDirective],
+  imports: [DecimalPipe, RouterLink, LucideAngularModule, BaseChartDirective, EmptyStateComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  // Chart.js is only needed here, so it stays out of the initial bundle
+  providers: [provideCharts(withDefaultRegisterables())],
 })
 export class DashboardComponent implements OnInit {
+  private dashboardService = inject(DashboardService);
+  private productService = inject(ProductService);
+  private navCounts = inject(NavCountsService);
+  private toast = inject(ToastService);
+  public sharedService = inject(SharedService);
 
-  stats: Array<{ label: string; value: string; icon: any }> = [];
+  private readonly authUser = toSignal(inject(AuthService).currentUser$);
+  readonly firstName = computed(() => this.authUser()?.user?.name?.split(' ')[0] ?? '');
+  readonly today = new Date();
 
-  data!: AdminDashboardResponse;
+  readonly data = signal<AdminDashboardResponse | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  // product id currently being approved/rejected from the dashboard
+  readonly moderating = signal<number | null>(null);
 
-  loading = false;
+  readonly timeAgo = timeAgo;
+  readonly humanize = humanize;
+  readonly stars = [1, 2, 3, 4, 5];
 
-  currentUser$: any;
+  protected readonly icons = { ArrowRight, Check, X, Star, RefreshCw, MessageSquare, Package };
 
-  username: any;
+  readonly kpis = computed<Kpi[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    return [
+      { label: 'Users', value: d.totalUsers, recent: this.sum(d.usersOverTime), icon: Users, link: '/users' },
+      { label: 'Companies', value: d.totalCompanies, recent: this.sum(d.companiesOverTime), icon: Building2, link: '/companies' },
+      { label: 'Products', value: d.totalProducts, recent: -1, icon: Package, link: '/products' },
+      { label: 'Reviews', value: d.totalReviews, recent: this.sum(d.reviewsOverTime), icon: Star, link: '/products' },
+    ];
+  });
 
-  // ── Bar chart: entity counts overview ──
-  public barChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [
-      {
-        data: [],
-        label: 'Total',
-        backgroundColor: ['#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'],
-        borderRadius: 6,
-        barThickness: 32
-      }
-    ]
-  };
+  readonly attention = computed<AttentionItem[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    return [
+      { label: 'Products to review', description: 'Submitted by companies, waiting for approval', count: d.totalPendingApprovals, icon: Package, link: '/products', query: { status: ProductStatus.PENDING_REVIEW } },
+      { label: 'Companies to verify', description: 'New companies waiting for activation', count: d.totalPendingCompanies, icon: Building2, link: '/companies', query: { status: 'PENDING' } },
+      { label: 'Product suggestions', description: 'Products users asked to add', count: d.totalPendingSuggestions, icon: Lightbulb, link: '/suggestions' },
+    ];
+  });
 
-  public barChartOptions: ChartOptions<'bar'> = {
+  readonly allCaughtUp = computed(() => this.attention().every(a => a.count === 0));
+
+  // ── Activity chart: new users / reviews / companies per day ──
+  readonly activityChart = computed<ChartConfiguration<'line'>['data']>(() => {
+    const d = this.data();
+    if (!d) return { labels: [], datasets: [] };
+    const line = (label: string, points: TimeSeriesPoint[], color: string) => ({
+      label,
+      data: points.map(p => p.count),
+      borderColor: color,
+      backgroundColor: color,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      // monotone smoothing never dips below zero or overshoots a peak
+      cubicInterpolationMode: 'monotone' as const,
+      borderWidth: 2,
+    });
+    return {
+      labels: d.usersOverTime.map(p => new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      datasets: [
+        line('New users', d.usersOverTime, SERIES.users),
+        line('New reviews', d.reviewsOverTime, SERIES.reviews),
+        line('New companies', d.companiesOverTime, SERIES.companies),
+      ],
+    };
+  });
+
+  readonly activityOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: '#F3F4F6' },
-        ticks: { color: '#6B7280', font: { size: 12 } }
-      },
-      x: {
-        grid: { display: false },
-        ticks: { color: '#6B7280', font: { size: 12 } }
-      }
-    }
-  };
-
-  // ── Doughnut chart: companies status breakdown ──
-  public doughnutChartData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: ['Active Companies', 'Inactive Companies'],
-    datasets: [
-      {
-        data: [],
-        backgroundColor: ['#4F46E5', '#E5E7EB'],
-        borderWidth: 0
-      }
-    ]
-  };
-
-  public doughnutChartOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#6B7280',
-          font: { size: 12 },
-          padding: 16,
-          usePointStyle: true
-        }
-      }
-    }
-  };
-
-  // ── Line charts: entity growth over time ──
-  public usersLineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: [],
-    datasets: [{
-      data: [],
-      label: 'New Users',
-      borderColor: '#4F46E5',
-      backgroundColor: 'rgba(79, 70, 229, 0.08)',
-      pointBackgroundColor: '#4F46E5',
-      pointBorderColor: '#ffffff',
-      pointBorderWidth: 2,
-      pointRadius: 3,
-      tension: 0.35,
-      fill: true,
-      borderWidth: 2
-    }]
-  };
-
-  public companiesLineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: [],
-    datasets: [{
-      data: [],
-      label: 'New Companies',
-      borderColor: '#059669',
-      backgroundColor: 'rgba(5, 150, 105, 0.08)',
-      pointBackgroundColor: '#059669',
-      pointBorderColor: '#ffffff',
-      pointBorderWidth: 2,
-      pointRadius: 3,
-      tension: 0.35,
-      fill: true,
-      borderWidth: 2
-    }]
-  };
-
-  public reviewsLineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: [],
-    datasets: [{
-      data: [],
-      label: 'New Reviews',
-      borderColor: '#DB2777',
-      backgroundColor: 'rgba(219, 39, 119, 0.08)',
-      pointBackgroundColor: '#DB2777',
-      pointBorderColor: '#ffffff',
-      pointBorderWidth: 2,
-      pointRadius: 3,
-      tension: 0.35,
-      fill: true,
-      borderWidth: 2
-    }]
-  };
-
-  public lineChartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
-      tooltip: {
-        backgroundColor: '#111827',
-        padding: 12,
-        cornerRadius: 8,
-        titleFont: { size: 13, weight: 'bold' },
-        bodyFont: { size: 13 }
-      }
+      tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 8, boxPadding: 4, usePointStyle: true },
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: '#F3F4F6' },
-        ticks: { color: '#6B7280', font: { size: 12 }, precision: 0 }
-      },
-      x: {
-        grid: { display: false },
-        ticks: { color: '#6B7280', font: { size: 11 } }
-      }
-    }
+      y: { beginAtZero: true, border: { display: false }, grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8', precision: 0, font: { size: 11 } } },
+      x: { grid: { display: false }, border: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 11 } } },
+    },
   };
 
-  constructor(
-    private dashboardService: DashboardService,
-    public authService: AuthService,
-  ) {
-    this.currentUser$ = this.authService.currentUser$;
-    this.username = this.currentUser$.source._value.username;
-  }
+  // ── Products by status ──
+  readonly productStatuses = computed(() => {
+    const counts = this.data()?.productsByStatus ?? {};
+    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+    return Object.keys(STATUS_COLORS).map(status => ({
+      status,
+      label: humanize(status),
+      count: counts[status] ?? 0,
+      percent: Math.round(((counts[status] ?? 0) / total) * 1000) / 10,
+      color: STATUS_COLORS[status],
+    }));
+  });
+
+  // Legend with each series' 30-day total, doubles as the chart's direct labels
+  readonly activitySeries = computed(() => {
+    const d = this.data();
+    if (!d) return [];
+    return [
+      { label: 'New users', total: this.sum(d.usersOverTime), color: SERIES.users },
+      { label: 'New reviews', total: this.sum(d.reviewsOverTime), color: SERIES.reviews },
+      { label: 'New companies', total: this.sum(d.companiesOverTime), color: SERIES.companies },
+    ];
+  });
 
   ngOnInit(): void {
-    this.loadDashboard();
+    this.load();
   }
 
-  private loadDashboard() {
-    this.loading = true;
-
+  load() {
+    this.loading.set(true);
+    this.error.set(null);
     this.dashboardService.getDashboard().subscribe({
-      next: (res) => {
-        this.data = res;
-
-        this.stats = [
-          {
-            label: 'Users',
-            value: this.format(res.totalUsers),
-            icon: Users
-          },
-          {
-            label: 'Companies',
-            value: this.format(res.totalCompanies),
-            icon: Building2
-          },
-          {
-            label: 'Active companies',
-            value: this.format(res.totalActiveCompanies),
-            icon: CheckCircle
-          },
-          {
-            label: 'Products',
-            value: this.format(res.totalProducts),
-            icon: Package
-          },
-          {
-            label: 'Reviews',
-            value: this.format(res.totalReviews),
-            icon: Star
-          },
-          {
-            label: 'Pending approval products',
-            value: this.format(res.totalPendingApprovals),
-            icon: Clock
-          }
-        ];
-
-        // ── Populate bar chart from real data ──
-        this.barChartData = {
-          ...this.barChartData,
-          labels: ['Users', 'Companies', 'Products', 'Reviews', 'Pending'],
-          datasets: [
-            {
-              ...this.barChartData.datasets[0],
-              data: [
-                res.totalUsers,
-                res.totalCompanies,
-                res.totalProducts,
-                res.totalReviews,
-                res.totalPendingApprovals
-              ]
-            }
-          ]
-        };
-
-        // ── Populate doughnut chart from real data ──
-        const inactiveCompanies = res.totalCompanies - res.totalActiveCompanies;
-        this.doughnutChartData = {
-          ...this.doughnutChartData,
-          datasets: [
-            {
-              ...this.doughnutChartData.datasets[0],
-              data: [res.totalActiveCompanies, inactiveCompanies]
-            }
-          ]
-        };
-
-        // ── Populate line charts from time-series data ──
-        this.usersLineChartData = {
-          ...this.usersLineChartData,
-          labels: res.usersOverTime.map(p => this.formatDate(p.date)),
-          datasets: [{
-            ...this.usersLineChartData.datasets[0],
-            data: res.usersOverTime.map(p => p.count)
-          }]
-        };
-
-        this.companiesLineChartData = {
-          ...this.companiesLineChartData,
-          labels: res.companiesOverTime.map(p => this.formatDate(p.date)),
-          datasets: [{
-            ...this.companiesLineChartData.datasets[0],
-            data: res.companiesOverTime.map(p => p.count)
-          }]
-        };
-
-        this.reviewsLineChartData = {
-          ...this.reviewsLineChartData,
-          labels: res.reviewsOverTime.map(p => this.formatDate(p.date)),
-          datasets: [{
-            ...this.reviewsLineChartData.datasets[0],
-            data: res.reviewsOverTime.map(p => p.count)
-          }]
-        };
-
-        this.loading = false;
+      next: res => {
+        this.data.set(res);
+        this.loading.set(false);
       },
-      error: (err) => {
-        console.error('Dashboard error', err);
-        this.loading = false;
+      error: err => {
+        this.error.set(apiErrorMessage(err, 'Could not load the dashboard.'));
+        this.loading.set(false);
       }
     });
   }
 
-  private format(n: number): string {
-    return n.toLocaleString();
+  moderate(product: ProductResponse, status: ProductStatus.PUBLISHED | ProductStatus.REJECTED) {
+    this.moderating.set(product.id);
+    this.productService.updateProductStatusAsAdmin(product.id, status).subscribe({
+      next: () => {
+        this.moderating.set(null);
+        this.toast.success(`"${product.name}" ${status === ProductStatus.PUBLISHED ? 'is now published' : 'was rejected'}.`);
+        this.navCounts.refresh();
+        this.load();
+      },
+      error: err => {
+        this.moderating.set(null);
+        this.toast.error(apiErrorMessage(err, 'Could not update the product.'));
+      }
+    });
   }
 
-  private formatDate(dateStr: string): string {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  protected readonly ProductStatus = ProductStatus;
+
+  private sum(points: TimeSeriesPoint[]): number {
+    return points.reduce((total, p) => total + p.count, 0);
   }
 }

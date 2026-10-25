@@ -1,129 +1,150 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LucideAngularModule } from 'lucide-angular';
 
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { UserResponse } from '../../models/userDTO/userResponse.model';
 import { UserService } from '../../services/userService/user.service';
+import { AdminUserResponse } from '../../models/userDTO/userResponse.model';
+import { AuthService } from '../../../auth/services/authService/auth.service';
+import { Page, emptyPage } from '../../../../core/model/page.model';
+import { BadgeComponent } from '../../../../core/ui/badge.component';
+import { PaginationComponent } from '../../../../core/ui/pagination.component';
+import { EmptyStateComponent } from '../../../../core/ui/empty-state.component';
+import { SearchInputComponent } from '../../../../core/ui/search-input.component';
+import { ToastService } from '../../../../core/ui/toast.service';
+import { ConfirmService } from '../../../../core/ui/confirm.service';
+import { apiErrorMessage } from '../../../../core/ui/api-error';
+import { humanize, initials } from '../../../../core/ui/format';
+import { Ban, Crown, ShieldCheck, UserCheck, Users } from '../../../../core/ui/icons';
 
+type UserTab = 'all' | 'admins' | 'suspended';
 
 @Component({
   selector: 'app-users-management',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [DatePipe, RouterLink, LucideAngularModule, BadgeComponent, PaginationComponent, EmptyStateComponent, SearchInputComponent],
   templateUrl: './users-management.component.html',
-  styleUrl: './users-management.component.css'
 })
 export class UsersManagementComponent implements OnInit {
-  users: UserResponse[] = [];
-  loading = false;
-  error: string | null = null;
-  saving = false;
-  selectedUser: UserResponse | null = null;
-  draftRole = 'USER';
-  roleOptions = ['USER', 'ADMIN'];
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private readonly me = toSignal(inject(AuthService).currentUser$);
 
-  searchTerm: string = '';
+  readonly tabs: { value: UserTab; label: string }[] = [
+    { value: 'all', label: 'All users' },
+    { value: 'admins', label: 'Admins' },
+    { value: 'suspended', label: 'Suspended' },
+  ];
 
-  filteredUsers: UserResponse[] = [];
+  readonly tab = signal<UserTab>('all');
+  readonly q = signal('');
+  readonly page = signal(0);
+  readonly size = 20;
 
-  showRoleModal = false;
+  readonly users = signal<Page<AdminUserResponse>>(emptyPage());
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly busyId = signal<number | null>(null);
 
-  openRoleModal(user: any) {
-    this.selectedUser = user;
-    this.draftRole = user.globalRole;
-    this.showRoleModal = true;
-  }
-
-  closeRoleModal() {
-    this.showRoleModal = false;
-    this.selectedUser = null;
-  }
-
-
-  constructor(private userService: UserService) {}
+  readonly initials = initials;
+  readonly humanize = humanize;
+  protected readonly icons = { Users, Crown, Ban, UserCheck, ShieldCheck };
 
   ngOnInit(): void {
-    this.load();
+    this.route.queryParamMap.subscribe(params => {
+      this.tab.set((params.get('tab') as UserTab) || 'all');
+      this.q.set(params.get('q') ?? '');
+      this.page.set(Number(params.get('page') ?? 0));
+      this.load();
+    });
   }
 
-load() {
-
-  this.loading = true;
-
-  this.userService.getAllUsers().subscribe({
-
-    next: (res) => {
-
-      this.users = res;
-
-      this.filteredUsers = res;
-
-      this.loading = false;
-
-    },
-
-    error: (err) => {
-
-      console.error(err);
-
-      this.error = 'Failed to load users';
-
-      this.loading = false;
-
-    }
-
-  });
-
-}
-
-filterUsers(): void {
-
-  const term = this.searchTerm.toLowerCase().trim();
-
-  this.filteredUsers = this.users.filter(u =>
-
-    u.name.toLowerCase().includes(term) ||
-
-    u.email.toLowerCase().includes(term)
-
-  );
-
-}
-
-  selectUser(user: UserResponse) {
-    this.selectedUser = user;
-    this.draftRole = user.globalRole || 'USER';
+  isMe(user: AdminUserResponse): boolean {
+    return user.id === this.me()?.user?.id;
   }
 
-  saveRole() {
-    if (!this.selectedUser) return;
-    this.saving = true;
-    this.error = null;
-
-    this.userService.updateUser(this.selectedUser.id, { globalRole: this.draftRole }).subscribe({
-      next: () => {
-        this.saving = false;
-        this.load();
-        this.closeRoleModal();
+  load() {
+    this.loading.set(true);
+    this.error.set(null);
+    this.userService.getUsersAsAdmin({
+      q: this.q(),
+      role: this.tab() === 'admins' ? 'ADMIN' : null,
+      status: this.tab() === 'suspended' ? 'SUSPENDED' : null,
+      page: this.page(),
+      size: this.size,
+    }).subscribe({
+      next: res => {
+        this.users.set(res);
+        this.loading.set(false);
       },
-      error: (err) => {
-        console.error(err);
-        this.error = 'Failed to update role';
-        this.saving = false;
+      error: err => {
+        this.error.set(apiErrorMessage(err, 'Could not load users.'));
+        this.loading.set(false);
       }
     });
   }
 
-  deleteUser(id: number) {
-    if (!confirm('Delete user?')) return;
-    this.userService.deleteUser(id).subscribe({
+  setFilters(changes: Record<string, string | number | null>) {
+    const queryParams: Record<string, string | number | null> = { page: null, ...changes };
+    for (const key of Object.keys(queryParams)) {
+      const value = queryParams[key];
+      if (value === '' || (key === 'page' && value === 0) || (key === 'tab' && value === 'all')) queryParams[key] = null;
+    }
+    this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' });
+  }
+
+  async toggleAdmin(user: AdminUserResponse) {
+    const promote = user.globalRole !== 'ADMIN';
+    const ok = await this.confirm.ask({
+      title: promote ? `Make ${user.name} an admin?` : `Remove admin access from ${user.name}?`,
+      message: promote
+        ? 'Admins can manage every product, company and user on the platform, including other admins.'
+        : 'They become a regular user right away and lose access to this panel.',
+      confirmLabel: promote ? 'Make admin' : 'Remove access',
+      tone: promote ? 'primary' : 'danger',
+    });
+    if (!ok) return;
+
+    this.busyId.set(user.id);
+    this.userService.updateUser(user.id, { globalRole: promote ? 'ADMIN' : 'USER' }).subscribe({
       next: () => {
-        if (this.selectedUser?.id === id) {
-          this.selectedUser = null;
-        }
+        this.busyId.set(null);
+        this.toast.success(promote ? `${user.name} is now an admin.` : `${user.name} is no longer an admin.`);
         this.load();
       },
-      error: (err) => { console.error(err); this.error = 'Failed to delete user'; }
+      error: err => {
+        this.busyId.set(null);
+        this.toast.error(apiErrorMessage(err, 'Could not change the role.'));
+      }
     });
   }
 
+  async toggleSuspended(user: AdminUserResponse) {
+    const suspend = user.status !== 'SUSPENDED';
+    if (suspend) {
+      const ok = await this.confirm.ask({
+        title: `Suspend ${user.name}?`,
+        message: 'They are signed out everywhere and cannot use their account until you reactivate it. Their reviews stay visible.',
+        confirmLabel: 'Suspend', tone: 'danger',
+      });
+      if (!ok) return;
+    }
+
+    this.busyId.set(user.id);
+    this.userService.updateStatus(user.id, suspend ? 'SUSPENDED' : 'ACTIVE').subscribe({
+      next: () => {
+        this.busyId.set(null);
+        this.toast.success(suspend ? `${user.name} is suspended.` : `${user.name} is active again.`);
+        this.load();
+      },
+      error: err => {
+        this.busyId.set(null);
+        this.toast.error(apiErrorMessage(err, 'Could not change the account status.'));
+      }
+    });
+  }
 }

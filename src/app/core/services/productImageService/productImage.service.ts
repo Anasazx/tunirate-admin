@@ -3,9 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../sharedService/shared.service';
 import { Observable } from 'rxjs';
 
-
-
-
 @Injectable({
 	providedIn: 'root'
 })
@@ -17,14 +14,13 @@ export class ProductImageService {
 		this.baseUrl = `${this.sharedService.publicUrl}/productImage`;
 	}
 
-
 	/** Mark an image as the main image for a product */
 	setMainImage(imageId: number, productId: number): Observable<void> {
 		return this.http.post<void>(`${this.baseUrl}/${imageId}/main?productId=${productId}`, {});
 	}
 
-
+	/** Delete an image; the backend promotes another image to main if needed */
+	deleteImage(imageId: number): Observable<void> {
+		return this.http.delete<void>(`${this.baseUrl}/${imageId}`);
+	}
 }
-
-
-

@@ -1,110 +1,101 @@
-<div class="p-6">
-
-
-  <!-- header -->
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-2xl font-bold">Companies</h2>
-
-    <button
-      routerLink="/companies/new"
-      class="bg-blue-600 text-white px-3 py-1 rounded">
-      New Company
-    </button>
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-900">Companies</h1>
+    <p class="mt-1 text-sm text-slate-500">Verify new companies and manage their status.</p>
   </div>
-
-  <br>
-  <br>
-
-
-
-
-
-  <!-- search bar -->
-<div class="mb-4">
-  <input
-    type="text"
-    [(ngModel)]="searchTerm"
-    (input)="filterCompanies()"
-    placeholder="Search companies..."
-    class="w-full md:w-80 border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
+  <a routerLink="/companies/new" class="btn-primary self-start sm:self-auto">
+    <lucide-icon [img]="icons.Plus" [size]="16" /> New company
+  </a>
 </div>
 
-
-
-
-  <!-- loading / error -->
-  <div *ngIf="loading" class="p-4 bg-white rounded border">
-    Loading...
+<div class="card">
+  <div class="overflow-x-auto border-b border-slate-200 px-4">
+    <nav class="flex gap-6 pt-3" aria-label="Filter by status">
+      @for (tab of tabs; track tab.label) {
+        <button type="button" class="tab" [class.tab-active]="status() === tab.value" (click)="setFilters({ status: tab.value })">
+          {{ tab.label }}
+          <span class="tab-count" [class.!bg-amber-100]="tab.value === CompanyStatus.PENDING && (counts()[CompanyStatus.PENDING] ?? 0) > 0"
+                [class.!text-amber-800]="tab.value === CompanyStatus.PENDING && (counts()[CompanyStatus.PENDING] ?? 0) > 0">
+            {{ tab.value ? (counts()[tab.value] ?? 0) : totalCount() }}
+          </span>
+        </button>
+      }
+    </nav>
   </div>
 
-  <div *ngIf="error" class="p-4 bg-red-50 text-red-700 rounded border">
-    {{ error }}
+  <div class="border-b border-slate-100 p-4">
+    <div class="md:w-80">
+      <app-search-input placeholder="Search companies by name" [value]="q()" (search)="setFilters({ q: $event })" />
+    </div>
   </div>
 
+  @if (error()) {
+    <div class="m-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+      {{ error() }} <button type="button" class="btn-secondary btn-sm" (click)="load()">Retry</button>
+    </div>
+  }
 
-  <div class="p-4 bg-gray-50 text-gray-600 rounded border text-center" *ngIf="filteredCompanies.length == 0">
-    No companies found.
+  <div class="relative overflow-x-auto">
+    @if (loading() && !companies().content.length) {
+      <div class="space-y-3 p-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="flex items-center gap-3"><div class="skeleton h-10 w-10 rounded-full"></div><div class="skeleton h-4 flex-1"></div><div class="skeleton h-4 w-24"></div></div>
+        }
+      </div>
+    } @else if (!companies().content.length) {
+      <app-empty-state [title]="q() || status() ? 'No companies match' : 'No companies yet'"
+                       [message]="q() || status() ? 'Try another search or status.' : 'Create the first company to start adding products.'"
+                       [icon]="icons.Building2">
+        @if (!q() && !status()) { <a routerLink="/companies/new" class="btn-primary btn-sm">New company</a> }
+      </app-empty-state>
+    } @else {
+      <table class="table-base min-w-[820px]" [class.opacity-60]="loading()">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Status</th>
+            <th class="text-right">Products</th>
+            <th class="text-right">Members</th>
+            <th>Added</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of companies().content; track c.id) {
+            <tr class="row-link" [routerLink]="['/companies', c.id]">
+              <td>
+                <div class="flex items-center gap-3">
+                  @if (c.logoUrl) {
+                    <img [src]="sharedService.getImageUrl(c.logoUrl)" alt="" class="h-10 w-10 shrink-0 rounded-full border border-slate-200 object-cover" />
+                  } @else {
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{{ initials(c.name) }}</span>
+                  }
+                  <div class="min-w-0">
+                    <p class="truncate font-medium text-slate-900">{{ c.name }}</p>
+                    <p class="truncate text-xs text-slate-500">{{ humanize(c.industry) }} · {{ humanize(c.country) }}</p>
+                  </div>
+                </div>
+              </td>
+              <td><app-badge [value]="c.status" /></td>
+              <td class="text-right tabular-nums">{{ c.productCount | number }}</td>
+              <td class="text-right tabular-nums" [class.text-slate-400]="!c.memberCount">{{ c.memberCount }}</td>
+              <td class="whitespace-nowrap text-slate-500">{{ c.createdAt | date: 'mediumDate' }}</td>
+              <td (click)="$event.stopPropagation()" class="cursor-default">
+                <div class="flex justify-end gap-1.5">
+                  @for (a of actions(c).slice(0, 1); track a.status) {
+                    <button type="button" [class]="a.danger ? 'btn-secondary btn-sm' : 'btn-success btn-sm'" [disabled]="busyId() === c.id" (click)="applyAction(c, a)">{{ a.label }}</button>
+                  }
+                  <a [routerLink]="['/companies', c.id, 'edit']" class="btn-ghost btn-sm" title="Edit" aria-label="Edit">
+                    <lucide-icon [img]="icons.Pencil" [size]="14" />
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </div>
 
-
-
-  <!-- table -->
-  <div class="bg-white border rounded" *ngIf="filteredCompanies.length > 0">
-    <table class="w-full text-left">
-
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="p-3">Name</th>
-          <th class="p-3">Country</th>
-          <th class="p-3">Status</th>
-          <th class="p-3">Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let c of filteredCompanies" [routerLink]="['/companies/details', c.id]" class="border-b hover:bg-slate-50 transition cursor-pointer">
-
-          <td class="p-3">{{ c.name }}</td>
-
-          <td class="p-3">{{ c.country }}</td>
-
-
-          <td class="p-3">
-            <span
-              class="px-2 py-1 text-xs font-medium rounded-full"
-              [ngClass]="{
-                'bg-yellow-100 text-yellow-700': c.status === 'PENDING',
-                'bg-green-100 text-green-700': c.status === 'ACTIVE',
-                'bg-red-100 text-red-700': c.status === 'REJECTED',
-                'bg-orange-100 text-orange-700': c.status === 'SUSPENDED',
-                'bg-gray-100 text-gray-600': c.status === 'ARCHIVED'
-              }"
-            >
-              {{ c.status }}
-            </span>
-          </td>
-
-          <td class="p-3 flex gap-3">
-
-            <a [routerLink]="['/companies', c.id]"
-               class="text-blue-600">
-              Edit
-            </a>
-
-            <button
-              (click)="archive(c.id)"
-              *ngIf="c.status != 'ARCHIVED'"
-              class="text-red-600">
-              Archive
-            </button>
-
-          </td>
-
-        </tr>
-      </tbody>
-
-    </table>
-  </div>
-
+  <app-pagination [page]="companies().number" [size]="size" [total]="companies().totalElements" (pageChange)="setFilters({ page: $event })" />
 </div>

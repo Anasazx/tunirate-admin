@@ -1,212 +1,188 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CategoryResponse } from '../../models/categoryDTO/categoryResponse.model';
-import { SubcategoryResponse } from '../../models/subcategoryDTO/subcategoryResponse.model';
-import { CategoryRequest } from '../../models/categoryDTO/categoryRequest.model';
+import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { LucideAngularModule } from 'lucide-angular';
+
 import { CategoryService } from '../../services/categoryService/category.service';
 import { SubcategoryService } from '../../services/subcategoryService/subcategory.service';
-import { SubcategoryRequest } from '../../models/subcategoryDTO/subcategoryRequest.model';
-
-
+import { CategoryResponse } from '../../models/categoryDTO/categoryResponse.model';
+import { SubcategoryResponse } from '../../models/subcategoryDTO/subcategoryResponse.model';
+import { EmptyStateComponent } from '../../../../core/ui/empty-state.component';
+import { ToastService } from '../../../../core/ui/toast.service';
+import { ConfirmService } from '../../../../core/ui/confirm.service';
+import { apiErrorMessage } from '../../../../core/ui/api-error';
+import { Check, ChevronRight, FolderTree, Layers, Pencil, Plus, Trash2, X } from '../../../../core/ui/icons';
 
 @Component({
   selector: 'app-category-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [DecimalPipe, NgTemplateOutlet, FormsModule, RouterLink, LucideAngularModule, EmptyStateComponent],
   templateUrl: './category-management.component.html',
-  styleUrls: ['./category-management.component.css']
 })
 export class CategoryManagementComponent implements OnInit {
-  categories: CategoryResponse[] = [];
-  subcategories: SubcategoryResponse[] = [];
+  private categoryService = inject(CategoryService);
+  private subcategoryService = inject(SubcategoryService);
+  private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
 
-  loadingCategories = false;
-  loadingSubcategories = false;
-  error: string | null = null;
+  readonly categories = signal<CategoryResponse[]>([]);
+  readonly subcategories = signal<SubcategoryResponse[]>([]);
+  readonly selectedId = signal<number | null>(null);
+  readonly loading = signal(true);
+  readonly busy = signal(false);
 
-  categoryEditingId: number | null = null;
-  categoryForm: CategoryRequest = { name: '' };
+  // Inline editing: one row at a time, 'new' for the add row
+  readonly editingCategory = signal<number | 'new' | null>(null);
+  readonly editingSubcategory = signal<number | 'new' | null>(null);
+  draftName = '';
 
-  subcategoryEditingId: number | null = null;
-  subcategoryForm: { name: string; categoryId: number | null } = { name: '', categoryId: null };
+  readonly selected = computed(() => this.categories().find(c => c.id === this.selectedId()) ?? null);
+  readonly selectedSubcategories = computed(() => this.subcategories().filter(s => s.categoryId === this.selectedId()));
 
-  constructor(
-    private categoryService: CategoryService,
-    private subcategoryService: SubcategoryService
-  ) {}
+  protected readonly icons = { Plus, Pencil, Trash2, Check, X, ChevronRight, FolderTree, Layers };
 
   ngOnInit(): void {
-    this.loadData();
+    this.load();
   }
 
-  loadData(): void {
-    this.loadCategories();
-    this.loadSubcategories();
-  }
-
-  loadCategories(): void {
-    this.loadingCategories = true;
-    this.categoryService.getAllCategories().subscribe({
-      next: (res) => {
-        this.categories = res;
-        this.loadingCategories = false;
+  load() {
+    forkJoin({ categories: this.categoryService.getAllCategories(), subcategories: this.subcategoryService.getAllSubcategories() }).subscribe({
+      next: ({ categories, subcategories }) => {
+        this.categories.set(categories);
+        this.subcategories.set(subcategories);
+        if (!categories.some(c => c.id === this.selectedId())) {
+          this.selectedId.set(categories[0]?.id ?? null);
+        }
+        this.loading.set(false);
       },
-      error: (err) => {
-        console.error('Failed to load categories', err);
-        this.error = 'Failed to load categories';
-        this.loadingCategories = false;
-      },
+      error: err => {
+        this.loading.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not load categories.'));
+      }
     });
   }
 
-  loadSubcategories(): void {
-    this.loadingSubcategories = true;
-    this.subcategoryService.getAllSubcategories().subscribe({
-      next: (res) => {
-        this.subcategories = res;
-        this.loadingSubcategories = false;
+  subcategoryCount(categoryId: number): number {
+    return this.subcategories().filter(s => s.categoryId === categoryId).length;
+  }
+
+  productCount(categoryId: number): number {
+    return this.subcategories().filter(s => s.categoryId === categoryId).reduce((sum, s) => sum + (s.productCount ?? 0), 0);
+  }
+
+  // ── Categories ──
+
+  startCategory(category: CategoryResponse | null) {
+    this.editingSubcategory.set(null);
+    this.editingCategory.set(category ? category.id : 'new');
+    this.draftName = category?.name ?? '';
+  }
+
+  saveCategory() {
+    const name = this.draftName.trim();
+    if (!name) return;
+    const editing = this.editingCategory();
+    const request$ = editing === 'new'
+      ? this.categoryService.createCategory({ name })
+      : this.categoryService.updateCategory(editing as number, { name });
+
+    this.busy.set(true);
+    request$.subscribe({
+      next: saved => {
+        this.busy.set(false);
+        this.editingCategory.set(null);
+        this.toast.success(editing === 'new' ? `Category "${name}" created.` : 'Category renamed.');
+        if (editing === 'new') this.selectedId.set(saved.id);
+        this.load();
       },
-      error: (err) => {
-        console.error('Failed to load subcategories', err);
-        this.error = 'Failed to load subcategories';
-        this.loadingSubcategories = false;
-      },
+      error: err => {
+        this.busy.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not save the category.'));
+      }
     });
   }
 
-  startCreateCategory(): void {
-    this.categoryEditingId = null;
-    this.categoryForm = { name: '' };
-    this.error = null;
+  async deleteCategory(category: CategoryResponse) {
+    const subs = this.subcategoryCount(category.id);
+    const ok = await this.confirm.ask({
+      title: `Delete "${category.name}"?`,
+      message: subs ? `Its ${subs} subcategories are deleted too. This is only possible when no product uses them.` : 'This category has no subcategories.',
+      confirmLabel: 'Delete', tone: 'danger',
+    });
+    if (!ok) return;
+
+    this.busy.set(true);
+    this.categoryService.deleteCategory(category.id).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.toast.success(`Category "${category.name}" deleted.`);
+        this.load();
+      },
+      error: err => {
+        this.busy.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not delete the category.'));
+      }
+    });
   }
 
-  startEditCategory(category: CategoryResponse): void {
-    this.categoryEditingId = category.id;
-    this.categoryForm = { name: category.name };
-    this.error = null;
+  // ── Subcategories ──
+
+  startSubcategory(subcategory: SubcategoryResponse | null) {
+    this.editingCategory.set(null);
+    this.editingSubcategory.set(subcategory ? subcategory.id : 'new');
+    this.draftName = subcategory?.name ?? '';
   }
 
-  cancelCategoryEdit(): void {
-    this.startCreateCategory();
-  }
+  saveSubcategory() {
+    const name = this.draftName.trim();
+    const categoryId = this.selectedId();
+    if (!name || !categoryId) return;
+    const editing = this.editingSubcategory();
+    const request$ = editing === 'new'
+      ? this.subcategoryService.createSubcategory({ name, categoryId })
+      : this.subcategoryService.updateSubcategory(editing as number, { name, categoryId });
 
-  saveCategory(): void {
-    const name = this.categoryForm.name.trim();
-    if (!name) {
-      this.error = 'Category name is required';
-      return;
-    }
-
-    const payload: CategoryRequest = { name };
-    const request$ = this.categoryEditingId
-      ? this.categoryService.updateCategory(this.categoryEditingId, payload)
-      : this.categoryService.createCategory(payload);
-
+    this.busy.set(true);
     request$.subscribe({
       next: () => {
-        this.loadCategories();
-        this.cancelCategoryEdit();
+        this.busy.set(false);
+        this.editingSubcategory.set(null);
+        this.toast.success(editing === 'new' ? `Subcategory "${name}" created.` : 'Subcategory renamed.');
+        this.load();
       },
-      error: (err) => {
-        console.error('Failed to save category', err);
-        this.error = 'Failed to save category';
-      },
+      error: err => {
+        this.busy.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not save the subcategory.'));
+      }
     });
   }
 
-  deleteCategory(id: number): void {
-    if (!confirm('Delete this category and its subcategories?')) {
+  async deleteSubcategory(subcategory: SubcategoryResponse) {
+    if (subcategory.productCount) {
+      this.toast.error(`${subcategory.productCount} products use "${subcategory.name}". Move them to another subcategory first.`);
       return;
     }
+    const ok = await this.confirm.ask({ title: `Delete "${subcategory.name}"?`, message: 'No product uses it, so nothing else changes.', confirmLabel: 'Delete', tone: 'danger' });
+    if (!ok) return;
 
-    this.categoryService.deleteCategory(id).subscribe({
+    this.busy.set(true);
+    this.subcategoryService.deleteSubcategory(subcategory.id).subscribe({
       next: () => {
-        this.loadData();
+        this.busy.set(false);
+        this.toast.success(`Subcategory "${subcategory.name}" deleted.`);
+        this.load();
       },
-      error: (err) => {
-        console.error('Failed to delete category', err);
-        this.error = 'Failed to delete category';
-      },
+      error: err => {
+        this.busy.set(false);
+        this.toast.error(apiErrorMessage(err, 'Could not delete the subcategory.'));
+      }
     });
   }
 
-  startCreateSubcategory(): void {
-    this.subcategoryEditingId = null;
-    this.subcategoryForm = { name: '', categoryId: this.categories[0]?.id ?? null };
-    this.error = null;
-  }
-
-  startEditSubcategory(subcategory: SubcategoryResponse): void {
-    this.subcategoryEditingId = subcategory.id;
-    this.subcategoryForm = { name: subcategory.name, categoryId: subcategory.categoryId };
-    this.error = null;
-  }
-
-  cancelSubcategoryEdit(): void {
-    this.startCreateSubcategory();
-  }
-
-  saveSubcategory(): void {
-    const name = this.subcategoryForm.name.trim();
-    const categoryId = this.subcategoryForm.categoryId;
-
-    if (!name) {
-      this.error = 'Subcategory name is required';
-      return;
-    }
-
-    if (!categoryId) {
-      this.error = 'Select a category for the subcategory';
-      return;
-    }
-
-    const payload: SubcategoryRequest = { name, categoryId };
-    const request$ = this.subcategoryEditingId
-      ? this.subcategoryService.updateSubcategory(this.subcategoryEditingId, payload)
-      : this.subcategoryService.createSubcategory(payload);
-
-    request$.subscribe({
-      next: () => {
-        this.loadData();
-        this.cancelSubcategoryEdit();
-      },
-      error: (err) => {
-        console.error('Failed to save subcategory', err);
-        this.error = 'Failed to save subcategory';
-      },
-    });
-  }
-
-  deleteSubcategory(id: number): void {
-    if (!confirm('Delete this subcategory?')) {
-      return;
-    }
-
-    this.subcategoryService.deleteSubcategory(id).subscribe({
-      next: () => {
-        this.loadData();
-      },
-      error: (err) => {
-        console.error('Failed to delete subcategory', err);
-        this.error = 'Failed to delete subcategory';
-      },
-    });
-  }
-
-  subcategoriesForCategory(categoryId: number): SubcategoryResponse[] {
-    return this.subcategories.filter((subcategory) => subcategory.categoryId === categoryId);
-  }
-
-  categoryNameForSubcategory(subcategory: SubcategoryResponse): string {
-    return this.categories.find((category) => category.id === subcategory.categoryId)?.name || 'Unknown';
-  }
-
-  get categoryCount(): number {
-    return this.categories.length;
-  }
-
-  get subcategoryCount(): number {
-    return this.subcategories.length;
+  cancelEdit() {
+    this.editingCategory.set(null);
+    this.editingSubcategory.set(null);
   }
 }

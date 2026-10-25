@@ -1,271 +1,165 @@
-<div class="max-w-7xl mx-auto p-8 bg-slate-50 min-h-screen"
-     *ngIf="product; else loadingTpl">
+<a routerLink="/products" class="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
+  <lucide-icon [img]="icons.ArrowLeft" [size]="16" /> Products
+</a>
 
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-8">
+@if (error()) {
+  <div class="card p-2">
+    <app-empty-state title="Product not available" [message]="error()!">
+      <a routerLink="/products" class="btn-secondary btn-sm">Back to products</a>
+    </app-empty-state>
+  </div>
+} @else if (loading()) {
+  <div class="grid gap-6 lg:grid-cols-5">
+    <div class="card aspect-square p-4 lg:col-span-2"><div class="skeleton h-full w-full"></div></div>
+    <div class="card space-y-4 p-6 lg:col-span-3"><div class="skeleton h-7 w-2/3"></div><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-24 w-full"></div></div>
+  </div>
+} @else {
+  @if (product(); as p) {
 
-    <div>
-      <p class="text-sm text-slate-500">
-        Products / Details
+  <!-- HEADER -->
+  <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-2xl font-semibold text-slate-900">{{ p.name }}</h1>
+        <app-badge [value]="p.status" />
+      </div>
+      <p class="mt-1 text-sm text-slate-500">
+        by <a [routerLink]="['/companies', p.companyId]" class="font-medium text-slate-700 hover:text-brand-700 hover:underline">{{ p.companyName }}</a>
+        @if (p.subcategoryName) { · {{ p.category }} › {{ p.subcategoryName }} }
       </p>
-
-      <h1 class="text-3xl font-bold text-slate-900 mt-1">
-        {{ product.name }}
-      </h1>
-
-      <div class="flex items-center gap-3 mt-3 text-sm text-slate-500">
-
-        <span>ID #{{ product.id }}</span>
-
-        <span>•</span>
-
-        <span>{{ product.companyName }}</span>
-
-
-      </div>
-
     </div>
 
-    <button
-      [routerLink]="['/products', id]"
-      class="rounded-xl bg-blue-600 px-5 py-2.5 text-white shadow hover:bg-blue-700 transition">
-
-      Edit Product
-
-    </button>
-
+    <div class="flex flex-wrap gap-2">
+      @switch (p.status) {
+        @case (ProductStatus.PENDING_REVIEW) {
+          <button type="button" class="btn-success" [disabled]="updating()" (click)="changeStatus(ProductStatus.PUBLISHED)">
+            <lucide-icon [img]="icons.Check" [size]="16" /> Approve & publish
+          </button>
+          <button type="button" class="btn-danger-outline" [disabled]="updating()" (click)="changeStatus(ProductStatus.REJECTED)">
+            <lucide-icon [img]="icons.X" [size]="16" /> Reject
+          </button>
+        }
+        @case (ProductStatus.PUBLISHED) {
+          <button type="button" class="btn-secondary" [disabled]="updating()" (click)="changeStatus(ProductStatus.ARCHIVED)">
+            <lucide-icon [img]="icons.Archive" [size]="16" /> Archive
+          </button>
+        }
+        @default {
+          <button type="button" class="btn-secondary" [disabled]="updating()" (click)="changeStatus(ProductStatus.PUBLISHED)">
+            <lucide-icon [img]="icons.RotateCcw" [size]="16" /> Publish
+          </button>
+        }
+      }
+      <a [routerLink]="['/products', p.id, 'edit']" class="btn-primary">
+        <lucide-icon [img]="icons.Pencil" [size]="16" /> Edit
+      </a>
+    </div>
   </div>
 
-  <!-- Main -->
-  <div class="grid lg:grid-cols-5 gap-8">
+  @if (p.status === ProductStatus.PENDING_REVIEW) {
+    <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      This product was submitted by {{ p.companyName }} and is not visible to users until you approve it.
+    </div>
+  }
+  @if (!p.subcategoryId) {
+    <div class="mb-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+      This product has no subcategory, so users can't find it by browsing.
+      <a [routerLink]="['/products', p.id, 'edit']" class="font-medium text-brand-600 hover:text-brand-700">Assign one</a>
+    </div>
+  }
 
-    <!-- LEFT -->
-    <div class="lg:col-span-3 space-y-6">
-
-      <!-- Main image -->
-      <div class="rounded-2xl overflow-hidden border bg-white shadow-sm">
-
-        <img
-          [src]="sharedService.getImageUrl(mainImage)"
-          class="w-full h-[520px] object-cover">
-
+  <div class="grid gap-6 lg:grid-cols-5">
+    <!-- GALLERY -->
+    <div class="lg:col-span-2">
+      <div class="card overflow-hidden">
+        @if (currentImage()) {
+          <img [src]="sharedService.getImageUrl(currentImage())" [alt]="p.name" class="aspect-square w-full bg-slate-50 object-contain" />
+        } @else {
+          <div class="flex aspect-square flex-col items-center justify-center gap-2 bg-slate-50 text-sm text-slate-400">
+            <lucide-icon [img]="icons.ImageOff" [size]="28" /> No images
+          </div>
+        }
       </div>
-
-      <!-- Gallery -->
-      <div class="bg-white border rounded-2xl p-5 shadow-sm">
-
-        <h3 class="font-semibold text-slate-900 mb-4">
-          Gallery
-        </h3>
-
-        <div class="flex gap-3 overflow-x-auto">
-
-          <img
-            *ngFor="let img of product.images"
-            [src]="sharedService.getImageUrl(img.url)"
-            (click)="selectImage(img.url)"
-            class="h-20 w-20 rounded-xl border object-cover cursor-pointer transition"
-            [ngClass]="{
-              'border-blue-600 ring-2 ring-blue-300': mainImage === img.url
-            }">
-          <p *ngIf="product.images.length == 0" class="leading-7 text-slate-600">No images yet</p>
-
+      @if (p.images.length > 1) {
+        <div class="mt-3 grid grid-cols-5 gap-2">
+          @for (img of p.images; track img.id) {
+            <button type="button" (click)="selectedImage.set(img.url)"
+                    class="overflow-hidden rounded-lg border-2 transition"
+                    [class]="img.url === currentImage() ? 'border-brand-500' : 'border-transparent hover:border-slate-300'">
+              <img [src]="sharedService.getImageUrl(img.url)" alt="" class="aspect-square w-full object-cover" />
+            </button>
+          }
         </div>
-
-      </div>
-
-      <!-- Description -->
-      <div class="bg-white border rounded-2xl p-6 shadow-sm">
-
-        <h3 class="font-semibold text-slate-900 mb-4">
-          Description
-        </h3>
-
-        <p class="leading-7 text-slate-600">
-          {{ product.description }}
-        </p>
-
-        <p *ngIf="product.description.length == 0">No images yet</p>
-
-
-      </div>
-
+      }
     </div>
 
-    <!-- RIGHT -->
-    <div class="lg:col-span-2 space-y-6">
-
-      <!-- Rating -->
-      <div class="bg-white border rounded-2xl p-6 shadow-sm">
-
-        <div class="text-sm text-slate-500">
-          Average Rating
+    <!-- INFO -->
+    <div class="space-y-6 lg:col-span-3">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card p-4">
+          <p class="text-xs font-medium text-slate-500">Average rating</p>
+          <p class="mt-1 flex items-center gap-1.5 text-2xl font-semibold text-slate-900">
+            {{ p.reviewsCount ? (p.averageRating | number: '1.1-1') : '–' }}
+            <lucide-icon [img]="icons.Star" [size]="18" class="fill-amber-400 text-amber-400" />
+          </p>
         </div>
-
-        <div class="mt-2 flex items-center gap-3">
-
-          <span class="text-4xl font-bold text-yellow-500">
-
-            ★ {{ product.averageRating ?? 0 }}
-
-          </span>
-
+        <div class="card p-4">
+          <p class="text-xs font-medium text-slate-500">Reviews</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900">{{ p.reviewsCount | number }}</p>
         </div>
-
-        <p class="mt-2 text-slate-500">
-
-          {{ product.reviewsCount }} Reviews
-
-        </p>
-
       </div>
 
-      <!-- Product Information -->
-      <div class="bg-white border rounded-2xl shadow-sm">
-
-        <div class="border-b px-6 py-4">
-
-          <h3 class="font-semibold text-slate-900">
-
-            Product Information
-
-          </h3>
-
-        </div>
-
-        <div class="divide-y">
-
-          <div class="flex justify-between px-6 py-4">
-
-            <span class="text-slate-500">
-              Category
-            </span>
-
-            <span class="font-medium">
-              {{ product.category }}
-            </span>
-
-          </div>
-
-          <div class="flex justify-between px-6 py-4">
-
-            <span class="text-slate-500">
-              Subcategory
-            </span>
-
-            <span class="font-medium">
-              {{ product.subcategoryName }}
-            </span>
-
-          </div>
-
-          <div class="flex justify-between px-6 py-4">
-
-            <span class="text-slate-500">
-              Status
-            </span>
-
-            <span
-              class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
-              [ngClass]="{
-                'bg-gray-100 text-gray-700': product.status === 'DRAFT',
-                'bg-amber-100 text-amber-700': product.status === 'PENDING_REVIEW',
-                'bg-green-100 text-green-700': product.status === 'PUBLISHED',
-                'bg-red-100 text-red-700': product.status === 'REJECTED',
-                'bg-slate-200 text-slate-700': product.status === 'ARCHIVED'
-              }">
-
-              {{ product.status.replace('_',' ') }}
-
-            </span>
-
-          </div>
-
-        </div>
-
+      <div class="card p-5">
+        <h2 class="text-sm font-semibold text-slate-900">Description</h2>
+        <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ p.description || 'No description yet.' }}</p>
       </div>
 
-      <!-- Company -->
-      <div class="bg-white border rounded-2xl shadow-sm">
-
-        <div class="border-b px-6 py-4">
-
-          <h3 class="font-semibold">
-            Company
-          </h3>
-
-        </div>
-
-        <div class="p-6">
-
-          <div class="font-semibold text-lg">
-            {{ product.companyName }}
-          </div>
-
-        </div>
-
+      <div class="card p-5">
+        <h2 class="text-sm font-semibold text-slate-900">Details</h2>
+        <dl class="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+          <div><dt class="text-slate-500">Company</dt>
+            <dd class="mt-0.5 flex items-center gap-2 font-medium text-slate-900">
+              @if (p.companyLogoUrl) { <img [src]="sharedService.getImageUrl(p.companyLogoUrl)" alt="" class="h-5 w-5 rounded-full object-cover" /> }
+              <a [routerLink]="['/companies', p.companyId]" class="hover:text-brand-700 hover:underline">{{ p.companyName }}</a>
+            </dd></div>
+          <div><dt class="text-slate-500">Category</dt><dd class="mt-0.5 font-medium text-slate-900">{{ p.subcategoryName ? p.category + ' › ' + p.subcategoryName : 'None' }}</dd></div>
+          <div><dt class="text-slate-500">Created by</dt><dd class="mt-0.5 font-medium text-slate-900">{{ p.createdByName || '–' }}</dd></div>
+          <div><dt class="text-slate-500">Last edited by</dt><dd class="mt-0.5 font-medium text-slate-900">{{ p.updatedByName || '–' }}</dd></div>
+        </dl>
       </div>
-
     </div>
-
   </div>
 
-  <!-- Reviews -->
-  <div class="mt-12">
-
-    <h2 class="text-2xl font-bold text-slate-900 mb-6">
-
-      Customer Reviews
-
-    </h2>
-
-    <div class="space-y-4">
-
-      <div
-        *ngFor="let r of product.reviews"
-        class="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition">
-
-        <div class="flex items-center justify-between">
-
-          <div>
-
-            <div class="font-semibold text-slate-900">
-
-              {{ r.userName }}
-
+  <!-- REVIEWS -->
+  <div class="card mt-6">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-slate-900">Reviews</h2>
+    </div>
+    @if (!reviews().content.length && !reviewsLoading()) {
+      <app-empty-state title="No reviews yet" message="Reviews from users will appear here." [icon]="icons.MessageSquare" />
+    } @else {
+      <ul class="divide-y divide-slate-100" [class.opacity-60]="reviewsLoading()">
+        @for (r of reviews().content; track r.id) {
+          <li class="flex gap-3 px-5 py-4">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{{ initials(r.user?.name) }}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span class="text-sm font-medium text-slate-900">{{ r.user?.name || 'Deleted user' }}</span>
+                <span class="flex items-center gap-0.5" [attr.aria-label]="r.rating + ' out of 5 stars'">
+                  @for (s of stars; track s) {
+                    <lucide-icon [img]="icons.Star" [size]="13" [class]="s <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'" />
+                  }
+                </span>
+                <span class="text-xs text-slate-400">{{ timeAgo(r.createdAt) }}</span>
+              </div>
+              @if (r.content) { <p class="mt-1 text-sm text-slate-600">{{ r.content }}</p> }
+              <p class="mt-1 text-xs text-slate-400">{{ r.likeCount }} likes · {{ r.commentsCount }} comments</p>
             </div>
-
-          </div>
-
-          <div
-            class="rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700">
-
-            ★ {{ r.rating }}
-
-          </div>
-
-        </div>
-
-        <p class="mt-4 leading-7 text-slate-600">
-
-          {{ r.content }}
-
-        </p>
-
-      </div>
-
-    </div>
-
+          </li>
+        }
+      </ul>
+      <app-pagination [page]="reviews().number" [size]="reviewPageSize" [total]="reviews().totalElements" (pageChange)="loadReviews($event)" />
+    }
   </div>
-
-</div>
-
-<ng-template #loadingTpl>
-
-  <div class="h-[60vh] flex items-center justify-center text-slate-400">
-
-    Loading product...
-
-  </div>
-
-</ng-template>
+}
+}

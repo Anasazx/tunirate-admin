@@ -1,110 +1,194 @@
-<div class="p-8 bg-gray-50 min-h-screen">
-
-  <!-- HEADER -->
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-    <p class="text-gray-600 mt-1">Welcome <span class="font-bold">{{ username }}</span> to your admin dashboard</p>
+<!-- HEADER -->
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <p class="text-sm text-slate-500">{{ today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) }}</p>
+    <h1 class="mt-1 text-2xl font-semibold text-slate-900">Welcome back{{ firstName() ? ', ' + firstName() : '' }}</h1>
   </div>
-
-  <!-- LOADING -->
-  <div *ngIf="loading" class="text-gray-500 mb-6">
-    Loading dashboard...
-  </div>
-
-  <!-- STATS -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-    <div *ngFor="let stat of stats"
-         class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-600 text-sm">{{ stat.label }}</p>
-          <p class="text-2xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
-        </div>
-        <lucide-icon [img]="stat.icon" class="w-10 h-10 text-gray-500"></lucide-icon>
-      </div>
-    </div>
-  </div>
-
-  <!-- OVERVIEW CHARTS -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-
-    <!-- Bar chart: entity counts overview -->
-    <div class="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Platform Overview</h2>
-        <p class="text-sm text-gray-500">Total counts across the platform</p>
-      </div>
-      <div class="h-72">
-        <canvas baseChart
-                [data]="barChartData"
-                [options]="barChartOptions"
-                type="bar">
-        </canvas>
-      </div>
-    </div>
-
-    <!-- Doughnut chart: company status -->
-    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Company Status</h2>
-        <p class="text-sm text-gray-500">Active vs inactive</p>
-      </div>
-      <div class="h-72">
-        <canvas baseChart
-                [data]="doughnutChartData"
-                [options]="doughnutChartOptions"
-                type="doughnut">
-        </canvas>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- GROWTH OVER TIME -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Users Over Time</h2>
-        <p class="text-sm text-gray-500">Last 30 days</p>
-      </div>
-      <div class="h-64">
-        <canvas baseChart
-                [data]="usersLineChartData"
-                [options]="lineChartOptions"
-                type="line">
-        </canvas>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Companies Over Time</h2>
-        <p class="text-sm text-gray-500">Last 30 days</p>
-      </div>
-      <div class="h-64">
-        <canvas baseChart
-                [data]="companiesLineChartData"
-                [options]="lineChartOptions"
-                type="line">
-        </canvas>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Reviews Over Time</h2>
-        <p class="text-sm text-gray-500">Last 30 days</p>
-      </div>
-      <div class="h-64">
-        <canvas baseChart
-                [data]="reviewsLineChartData"
-                [options]="lineChartOptions"
-                type="line">
-        </canvas>
-      </div>
-    </div>
-
-  </div>
-
+  <button type="button" class="btn-secondary self-start sm:self-auto" (click)="load()" [disabled]="loading()">
+    <lucide-icon [img]="icons.RefreshCw" [size]="16" [class.animate-spin]="loading()" /> Refresh
+  </button>
 </div>
+
+@if (error()) {
+  <div class="card mb-6 flex items-center justify-between gap-4 border-red-200 bg-red-50 p-4 text-sm text-red-700">
+    <span>{{ error() }}</span>
+    <button type="button" class="btn-secondary btn-sm" (click)="load()">Try again</button>
+  </div>
+}
+
+@if (loading() && !data()) {
+  <!-- SKELETON -->
+  <div class="grid gap-4 sm:grid-cols-3">
+    @for (i of [1, 2, 3]; track i) { <div class="card h-28 p-5"><div class="skeleton h-4 w-32"></div><div class="skeleton mt-4 h-7 w-12"></div></div> }
+  </div>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    @for (i of [1, 2, 3, 4]; track i) { <div class="card h-28 p-5"><div class="skeleton h-4 w-20"></div><div class="skeleton mt-4 h-7 w-24"></div></div> }
+  </div>
+  <div class="card mt-4 h-80 p-5"><div class="skeleton h-full w-full"></div></div>
+}
+
+@if (data(); as d) {
+
+  <!-- NEEDS ATTENTION -->
+  <section class="mb-6" aria-labelledby="attention-title">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 id="attention-title" class="text-sm font-semibold text-slate-900">Needs your attention</h2>
+      @if (allCaughtUp()) {
+        <span class="inline-flex items-center gap-1.5 text-sm text-emerald-700"><lucide-icon [img]="icons.Check" [size]="16" /> All caught up</span>
+      }
+    </div>
+    <div class="grid gap-4 sm:grid-cols-3">
+      @for (item of attention(); track item.label) {
+        <a [routerLink]="item.link" [queryParams]="item.query"
+           class="card group flex items-start gap-4 p-5 transition hover:border-brand-300 hover:shadow-md"
+           [class.!border-amber-300]="item.count > 0">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                [class]="item.count > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'">
+            <lucide-icon [img]="item.icon" [size]="20" />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="flex items-baseline justify-between gap-2">
+              <span class="text-sm font-medium text-slate-900">{{ item.label }}</span>
+              <span class="text-2xl font-semibold tabular-nums" [class]="item.count > 0 ? 'text-amber-700' : 'text-slate-400'">{{ item.count }}</span>
+            </span>
+            <span class="mt-1 block text-xs text-slate-500">{{ item.description }}</span>
+            <span class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">
+              Open <lucide-icon [img]="icons.ArrowRight" [size]="12" />
+            </span>
+          </span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" aria-label="Platform totals">
+    @for (kpi of kpis(); track kpi.label) {
+      <a [routerLink]="kpi.link" class="card p-4 transition hover:border-slate-300 sm:p-5">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-slate-500">{{ kpi.label }}</span>
+          <lucide-icon [img]="kpi.icon" [size]="18" class="text-slate-400" />
+        </div>
+        <p class="mt-3 text-2xl font-semibold tabular-nums text-slate-900 sm:text-3xl">{{ kpi.value | number }}</p>
+        @if (kpi.recent >= 0) {
+          <p class="mt-1 text-xs text-slate-500">
+            <span class="font-medium" [class]="kpi.recent > 0 ? 'text-emerald-700' : 'text-slate-500'">+{{ kpi.recent | number }}</span> in the last 30 days
+          </p>
+        } @else {
+          <p class="mt-1 text-xs text-slate-500">{{ d.productsByStatus['PUBLISHED'] | number }} published</p>
+        }
+      </a>
+    }
+  </section>
+
+  <!-- ACTIVITY + STATUS -->
+  <section class="mb-6 grid gap-4 lg:grid-cols-3">
+    <div class="card p-5 lg:col-span-2">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900">Activity</h2>
+          <p class="text-xs text-slate-500">New sign-ups, reviews and companies per day, last 30 days</p>
+        </div>
+        <ul class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+          @for (s of activitySeries(); track s.label) {
+            <li class="flex items-center gap-1.5">
+              <span class="h-2.5 w-2.5 rounded-full" [style.background]="s.color"></span>
+              {{ s.label }} <span class="font-semibold text-slate-900">{{ s.total | number }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+      <div class="h-72">
+        <canvas baseChart [data]="activityChart()" [options]="activityOptions" type="line" aria-label="Daily new users, reviews and companies over the last 30 days"></canvas>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <h2 class="text-sm font-semibold text-slate-900">Products by status</h2>
+      <p class="text-xs text-slate-500">Everything submitted to the catalog</p>
+      <ul class="mt-5 space-y-4">
+        @for (s of productStatuses(); track s.status) {
+          <li>
+            <a routerLink="/products" [queryParams]="{ status: s.status }" class="group block">
+              <div class="flex items-center justify-between text-sm">
+                <span class="flex items-center gap-2 text-slate-700 group-hover:text-slate-900">
+                  <span class="h-2.5 w-2.5 rounded-full" [style.background]="s.color"></span>{{ s.label }}
+                </span>
+                <span class="tabular-nums text-slate-900"><span class="font-semibold">{{ s.count | number }}</span>
+                  <span class="ml-1 text-xs text-slate-400">{{ s.percent }}%</span></span>
+              </div>
+              <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full" [style.background]="s.color" [style.width.%]="s.count > 0 ? (s.percent < 1 ? 1 : s.percent) : 0"></div>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- PENDING PRODUCTS + RECENT REVIEWS -->
+  <section class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="card">
+      <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900">Waiting for review</h2>
+          <p class="text-xs text-slate-500">Latest products submitted by companies</p>
+        </div>
+        <a routerLink="/products" [queryParams]="{ status: ProductStatus.PENDING_REVIEW }" class="text-xs font-medium text-brand-600 hover:text-brand-700">View all</a>
+      </div>
+      @if (d.pendingProducts.length) {
+        <ul class="divide-y divide-slate-100">
+          @for (p of d.pendingProducts; track p.id) {
+            <li class="flex items-center gap-3 px-5 py-3">
+              <img [src]="sharedService.getImageUrl(p.image?.url)" alt="" class="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-cover" />
+              <a [routerLink]="['/products', p.id]" class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-slate-900 hover:text-brand-700">{{ p.name }}</p>
+                <p class="truncate text-xs text-slate-500">{{ p.companyName }} · {{ timeAgo(p.createdAt) }}</p>
+              </a>
+              <div class="flex shrink-0 gap-1.5">
+                <button type="button" class="btn-success btn-sm" [disabled]="moderating() === p.id" (click)="moderate(p, ProductStatus.PUBLISHED)" title="Approve and publish">
+                  <lucide-icon [img]="icons.Check" [size]="14" /> Approve
+                </button>
+                <button type="button" class="btn-danger-outline btn-sm" [disabled]="moderating() === p.id" (click)="moderate(p, ProductStatus.REJECTED)" title="Reject" aria-label="Reject">
+                  <lucide-icon [img]="icons.X" [size]="14" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-empty-state title="Nothing to review" message="New products from companies will show up here." [icon]="icons.Package" />
+      }
+    </div>
+
+    <div class="card">
+      <div class="border-b border-slate-100 px-5 py-4">
+        <h2 class="text-sm font-semibold text-slate-900">Latest reviews</h2>
+        <p class="text-xs text-slate-500">What users are saying right now</p>
+      </div>
+      @if (d.recentReviews.length) {
+        <ul class="divide-y divide-slate-100">
+          @for (r of d.recentReviews; track r.id) {
+            <li class="px-5 py-3">
+              <div class="flex items-center justify-between gap-3">
+                <a [routerLink]="['/products', r.productId]" class="truncate text-sm font-medium text-slate-900 hover:text-brand-700">{{ r.productName }}</a>
+                <span class="flex shrink-0 items-center gap-0.5" [attr.aria-label]="r.rating + ' out of 5 stars'">
+                  @for (s of stars; track s) {
+                    <lucide-icon [img]="icons.Star" [size]="13" [class]="s <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'" />
+                  }
+                </span>
+              </div>
+              @if (r.content) {
+                <p class="mt-1 line-clamp-2 text-sm text-slate-600">{{ r.content }}</p>
+              }
+              <p class="mt-1 text-xs text-slate-400">{{ r.userName }} · {{ timeAgo(r.createdAt) }}</p>
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-empty-state title="No reviews yet" [icon]="icons.MessageSquare" />
+      }
+    </div>
+  </section>
+}

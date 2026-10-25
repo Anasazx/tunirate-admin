@@ -1,162 +1,112 @@
-<div class="p-6 space-y-6">
-  <div class="flex items-center justify-between gap-4">
-    <div>
-      <h2 class="text-2xl font-bold text-gray-900">Category Management</h2>
-      <p class="text-sm text-gray-500">Create, update, and delete categories and their subcategories.</p>
-    </div>
-    <button (click)="loadData()" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
-      Refresh
-    </button>
-  </div>
-
-  <div *ngIf="error" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-    {{ error }}
-  </div>
-
-  <div class="grid gap-6 lg:grid-cols-2">
-    <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900">Categories</h3>
-          <p class="text-sm text-gray-500">{{ categoryCount }} total</p>
-        </div>
-        <button (click)="startCreateCategory()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          New Category
-        </button>
-      </div>
-
-      <div class="px-5 py-4">
-        <div *ngIf="loadingCategories" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-          Loading categories...
-        </div>
-
-        <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            {{ categoryEditingId ? 'Edit Category' : 'Create Category' }}
-          </h4>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-              <input [(ngModel)]="categoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Category name" />
-            </div>
-            <div class="flex items-center gap-3">
-              <button (click)="saveCategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                Save
-              </button>
-              <button (click)="cancelCategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-
-        <div *ngIf="!loadingCategories" class="overflow-hidden rounded-xl border border-gray-200">
-          <table class="min-w-full divide-y divide-gray-200 text-left">
-            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th class="px-4 py-3">Name</th>
-                <th class="px-4 py-3">Subcategories</th>
-                <th class="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-              <tr *ngFor="let category of categories">
-                <td class="px-4 py-3 font-medium text-gray-900">{{ category.name }}</td>
-                <td class="px-4 py-3 text-gray-600">
-                  {{ subcategoriesForCategory(category.id).length }}
-                </td>
-                <td class="px-4 py-3">
-                  <div class="flex flex-wrap gap-3">
-                    <button (click)="startEditCategory(category)" class="text-sm font-medium text-blue-600 hover:text-blue-700">Edit</button>
-                    <button (click)="deleteCategory(category.id)" class="text-sm font-medium text-red-600 hover:text-red-700">Delete</button>
-                  </div>
-                </td>
-              </tr>
-              <tr *ngIf="categories.length === 0">
-                <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">No categories found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-
-      </div>
-    </section>
-
-    <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900">Subcategories</h3>
-          <p class="text-sm text-gray-500">{{ subcategoryCount }} total</p>
-        </div>
-        <button (click)="startCreateSubcategory()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          New Subcategory
-        </button>
-      </div>
-
-      <div class="px-5 py-4">
-        <div *ngIf="loadingSubcategories" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-          Loading subcategories...
-        </div>
-
-        <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            {{ subcategoryEditingId ? 'Edit Subcategory' : 'Create Subcategory' }}
-          </h4>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-              <input [(ngModel)]="subcategoryForm.name" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500" placeholder="Subcategory name" />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
-              <select [(ngModel)]="subcategoryForm.categoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-blue-500">
-                <option [ngValue]="null" disabled>Select category</option>
-                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-3">
-              <button (click)="saveSubcategory()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                Save
-              </button>
-              <button (click)="cancelSubcategoryEdit()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-
-        <div *ngIf="!loadingSubcategories" class="overflow-hidden rounded-xl border border-gray-200">
-          <table class="min-w-full divide-y divide-gray-200 text-left">
-            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th class="px-4 py-3">Name</th>
-                <th class="px-4 py-3">Category</th>
-                <th class="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-              <tr *ngFor="let subcategory of subcategories">
-                <td class="px-4 py-3 font-medium text-gray-900">{{ subcategory.name }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ categoryNameForSubcategory(subcategory) }}</td>
-                <td class="px-4 py-3">
-                  <div class="flex flex-wrap gap-3">
-                    <button (click)="startEditSubcategory(subcategory)" class="text-sm font-medium text-blue-600 hover:text-blue-700">Edit</button>
-                    <button (click)="deleteSubcategory(subcategory.id)" class="text-sm font-medium text-red-600 hover:text-red-700">Delete</button>
-                  </div>
-                </td>
-              </tr>
-              <tr *ngIf="subcategories.length === 0">
-                <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">No subcategories found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-
-      </div>
-    </section>
-  </div>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-slate-900">Categories</h1>
+  <p class="mt-1 text-sm text-slate-500">How products are organized on the public site. Pick a category to manage its subcategories.</p>
 </div>
+
+<!-- Inline name editor, shared by both lists -->
+<ng-template #editor let-save="save" let-placeholder="placeholder">
+  <form class="flex items-center gap-2" (ngSubmit)="save()" (keydown.escape)="cancelEdit()">
+    <input class="input py-1.5" name="draft" [(ngModel)]="draftName" [placeholder]="placeholder" autofocus />
+    <button type="submit" class="btn-primary btn-sm" [disabled]="busy() || !draftName.trim()" aria-label="Save"><lucide-icon [img]="icons.Check" [size]="14" /></button>
+    <button type="button" class="btn-ghost btn-sm" (click)="cancelEdit()" aria-label="Cancel"><lucide-icon [img]="icons.X" [size]="14" /></button>
+  </form>
+</ng-template>
+
+@if (loading()) {
+  <div class="grid gap-6 lg:grid-cols-5">
+    <div class="card space-y-3 p-4 lg:col-span-2">@for (i of [1, 2, 3]; track i) { <div class="skeleton h-10 w-full"></div> }</div>
+    <div class="card space-y-3 p-4 lg:col-span-3">@for (i of [1, 2, 3, 4]; track i) { <div class="skeleton h-10 w-full"></div> }</div>
+  </div>
+} @else {
+  <div class="grid gap-6 lg:grid-cols-5">
+
+    <!-- CATEGORIES -->
+    <section class="card h-fit lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <h2 class="text-sm font-semibold text-slate-900">Categories <span class="ml-1 font-normal text-slate-400">{{ categories().length }}</span></h2>
+        <button type="button" class="btn-ghost btn-sm" (click)="startCategory(null)"><lucide-icon [img]="icons.Plus" [size]="14" /> Add</button>
+      </div>
+
+      @if (editingCategory() === 'new') {
+        <div class="border-b border-slate-100 p-3">
+          <ng-container *ngTemplateOutlet="editor; context: { save: saveCategory.bind(this), placeholder: 'Category name' }" />
+        </div>
+      }
+
+      @if (!categories().length && editingCategory() !== 'new') {
+        <app-empty-state title="No categories yet" message="Start with a broad group like Beauty or Food." [icon]="icons.FolderTree">
+          <button type="button" class="btn-primary btn-sm" (click)="startCategory(null)">Add a category</button>
+        </app-empty-state>
+      }
+
+      <ul class="divide-y divide-slate-100">
+        @for (c of categories(); track c.id) {
+          <li>
+            @if (editingCategory() === c.id) {
+              <div class="p-3"><ng-container *ngTemplateOutlet="editor; context: { save: saveCategory.bind(this), placeholder: 'Category name' }" /></div>
+            } @else {
+              <div class="group flex cursor-pointer items-center gap-3 px-4 py-3 transition"
+                   [class]="selectedId() === c.id ? 'bg-brand-50' : 'hover:bg-slate-50'" (click)="selectedId.set(c.id)">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium" [class]="selectedId() === c.id ? 'text-brand-700' : 'text-slate-900'">{{ c.name }}</p>
+                  <p class="text-xs text-slate-500">{{ subcategoryCount(c.id) }} subcategories · {{ productCount(c.id) | number }} products</p>
+                </div>
+                <div class="flex gap-0.5 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100" (click)="$event.stopPropagation()">
+                  <button type="button" class="btn-ghost btn-sm" (click)="startCategory(c)" aria-label="Rename"><lucide-icon [img]="icons.Pencil" [size]="14" /></button>
+                  <button type="button" class="btn-ghost btn-sm hover:text-red-600" (click)="deleteCategory(c)" aria-label="Delete"><lucide-icon [img]="icons.Trash2" [size]="14" /></button>
+                </div>
+                <lucide-icon [img]="icons.ChevronRight" [size]="16" class="text-slate-300" />
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+
+    <!-- SUBCATEGORIES -->
+    <section class="card h-fit lg:col-span-3">
+      @if (selected(); as cat) {
+        <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <h2 class="text-sm font-semibold text-slate-900">{{ cat.name }} <span class="ml-1 font-normal text-slate-400">subcategories</span></h2>
+          <button type="button" class="btn-ghost btn-sm" (click)="startSubcategory(null)"><lucide-icon [img]="icons.Plus" [size]="14" /> Add</button>
+        </div>
+
+        @if (editingSubcategory() === 'new') {
+          <div class="border-b border-slate-100 p-3">
+            <ng-container *ngTemplateOutlet="editor; context: { save: saveSubcategory.bind(this), placeholder: 'Subcategory name' }" />
+          </div>
+        }
+
+        @if (!selectedSubcategories().length && editingSubcategory() !== 'new') {
+          <app-empty-state [title]="cat.name + ' has no subcategories'" message="Products are assigned to subcategories, so add at least one." [icon]="icons.Layers">
+            <button type="button" class="btn-primary btn-sm" (click)="startSubcategory(null)">Add a subcategory</button>
+          </app-empty-state>
+        }
+
+        <ul class="divide-y divide-slate-100">
+          @for (s of selectedSubcategories(); track s.id) {
+            <li>
+              @if (editingSubcategory() === s.id) {
+                <div class="p-3"><ng-container *ngTemplateOutlet="editor; context: { save: saveSubcategory.bind(this), placeholder: 'Subcategory name' }" /></div>
+              } @else {
+                <div class="group flex items-center gap-3 px-4 py-3">
+                  <p class="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">{{ s.name }}</p>
+                  <a routerLink="/products" [queryParams]="{ subcategory: s.id }" class="text-xs text-slate-500 hover:text-brand-700 hover:underline">
+                    {{ s.productCount ?? 0 | number }} products
+                  </a>
+                  <div class="flex gap-0.5 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                    <button type="button" class="btn-ghost btn-sm" (click)="startSubcategory(s)" aria-label="Rename"><lucide-icon [img]="icons.Pencil" [size]="14" /></button>
+                    <button type="button" class="btn-ghost btn-sm hover:text-red-600" (click)="deleteSubcategory(s)" aria-label="Delete"
+                            [title]="s.productCount ? 'Used by products' : 'Delete'"><lucide-icon [img]="icons.Trash2" [size]="14" /></button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-empty-state title="Select a category" message="Its subcategories will show up here." [icon]="icons.Layers" />
+      }
+    </section>
+  </div>
+}

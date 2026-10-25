@@ -3,4 +3,6 @@ export interface SubcategoryResponse {
   name: string;
   categoryId: number;
   categoryName?: string;
+  // only on GET /subcategories/op
+  productCount?: number;
 }

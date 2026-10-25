@@ -1,247 +1,147 @@
-<div class="space-y-6 p-6">
-
-  <!-- Header -->
-  <div class="flex items-center justify-between">
-
-    <div>
-      <h1 class="text-3xl font-bold text-slate-900">
-        Products
-      </h1>
-
-      <p class="text-sm text-slate-500 mt-1">
-        Manage all products on the platform
-      </p>
-    </div>
-
-    <div class="flex items-center gap-3">
-
-      <button
-        routerLink="/products"
-        class="px-4 py-2 border rounded-lg hover:bg-slate-50">
-        Refresh
-      </button>
-
-      <button
-        routerLink="/products/new"
-        class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-        New Product
-      </button>
-
-    </div>
-
+<!-- HEADER -->
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-900">Products</h1>
+    <p class="mt-1 text-sm text-slate-500">Review what companies submit and manage the catalog.</p>
   </div>
-
-  <!-- Filters -->
-  <div class="bg-white border rounded-xl p-4">
-
-    <div class="flex flex-wrap gap-4">
-
-      <div class="flex-1 min-w-[320px]">
-
-        <input
-          [(ngModel)]="query"
-          placeholder="Search by product, company or category..."
-          class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"/>
-
-      </div>
-
-      <select
-        [(ngModel)]="selectedStatus"
-        class="rounded-lg border border-gray-300 px-4 py-2.5">
-
-        <option value="">All Statuses</option>
-        <option value="PENDING_REVIEW">Pending Review</option>
-        <option value="PUBLISHED">Published</option>
-        <option value="REJECTED">Rejected</option>
-        <option value="ARCHIVED">Archived</option>
-
-      </select>
-
-    </div>
-
-  </div>
-
-
-  <div class="p-4 bg-gray-50 text-gray-600 rounded border text-center" *ngIf="filtered.length == 0">
-    No Products found.
-  </div>
-
-
-  <!-- Table -->
-  <div class="overflow-hidden rounded-xl border bg-white" *ngIf="filtered.length > 0">
-
-    <table class="w-full">
-
-      <thead class="bg-slate-50 border-b">
-
-      <tr class="text-sm text-slate-600">
-
-        <th class="px-5 py-4 text-left">Product</th>
-        <th class="px-5 py-4 text-left">Company</th>
-        <th class="px-5 py-4 text-left">Category</th>
-        <th class="px-5 py-4 text-left">Subcategory</th>
-        <th class="px-5 py-4 text-left">Created By</th>
-        <th class="px-5 py-4 text-center">Status</th>
-        <th class="px-5 py-4 text-right">Actions</th>
-
-      </tr>
-
-      </thead>
-
-      <tbody>
-
-      <tr
-
-        *ngFor="let p of filtered"
-        class="border-b hover:bg-slate-50 transition cursor-pointer"
-        [routerLink]="['/products/details', p.id]"
-      >
-
-        <!-- Product -->
-        <td class="px-5 py-4">
-
-          <div>
-
-            <div class="font-medium text-slate-900">
-              {{ p.name }}
-            </div>
-
-          </div>
-
-        </td>
-
-        <!-- Company -->
-        <td class="px-5 py-4">
-
-          {{ p.companyName }}
-
-        </td>
-
-        <!-- Category -->
-        <td class="px-5 py-4">
-
-          {{ p.category || "-" }}
-
-        </td>
-
-        <!-- Subcategory -->
-        <td class="px-5 py-4">
-
-          {{ p.subcategoryName || "-" }}
-
-        </td>
-
-        <!-- Created -->
-        <td class="px-5 py-4">
-
-          {{ p.createdByName || "-" }}
-
-        </td>
-
-        <!-- Status -->
-        <td class="px-5 py-4 text-center">
-
-            <span
-              class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
-              [ngClass]="{
-                'bg-gray-100 text-gray-700': p.status === 'DRAFT',
-                'bg-amber-100 text-amber-700': p.status === 'PENDING_REVIEW',
-                'bg-green-100 text-green-700': p.status === 'PUBLISHED',
-                'bg-red-100 text-red-700': p.status === 'REJECTED',
-                'bg-slate-200 text-slate-700': p.status === 'ARCHIVED'
-              }">
-
-              {{ p.status.replace('_',' ') }}
-
-            </span>
-
-        </td>
-
-        <!-- Actions -->
-        <td class="px-5 py-4">
-
-          <div class="flex justify-end gap-2">
-
-            <button
-              [routerLink]="['/products', p.id]"
-              class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-100">
-              Edit
-            </button>
-
-            <button
-              (click)="$event.stopPropagation(); confirmArchive(p)"
-              *ngIf="p.status != 'ARCHIVED'"
-              class="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
-              Archive
-            </button>
-
-          </div>
-
-        </td>
-
-      </tr>
-
-      </tbody>
-
-    </table>
-
-  </div>
-
+  <a routerLink="/products/new" class="btn-primary self-start sm:self-auto">
+    <lucide-icon [img]="icons.Plus" [size]="16" /> New product
+  </a>
 </div>
 
-
-<div
-  *ngIf="productToArchive"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-
-  <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
-
-    <div class="p-6">
-
-      <div class="flex items-center gap-3">
-
-        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <span class="text-xl">🗑️</span>
-        </div>
-
-        <div>
-          <h3 class="text-lg font-semibold">
-            Archive Product
-          </h3>
-
-          <p class="text-sm text-slate-500">
-            This action cannot be undone.
-          </p>
-        </div>
-
-      </div>
-
-      <p class="mt-5 text-slate-700">
-        Are you sure you want to Archive
-        <span class="font-semibold">
-          "{{ productToArchive.name }}"
-        </span>
-        ?
-      </p>
-
-    </div>
-
-    <div class="flex justify-end gap-3 border-t p-4">
-
-      <button
-        (click)="cancelArchive()"
-        class="rounded-lg border px-4 py-2 hover:bg-slate-50">
-        Cancel
-      </button>
-
-      <button
-        (click)="archiveConfirmed()"
-        class="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700">
-        Archive
-      </button>
-
-    </div>
-
+<div class="card">
+  <!-- STATUS TABS -->
+  <div class="overflow-x-auto border-b border-slate-200 px-4">
+    <nav class="flex gap-6 pt-3" aria-label="Filter by status">
+      @for (tab of tabs; track tab.label) {
+        <button type="button" class="tab" [class.tab-active]="status() === tab.value" (click)="setFilters({ status: tab.value })">
+          {{ tab.label }}
+          <span class="tab-count" [class.!bg-amber-100]="tab.value === ProductStatus.PENDING_REVIEW && (counts()[ProductStatus.PENDING_REVIEW] ?? 0) > 0"
+                [class.!text-amber-800]="tab.value === ProductStatus.PENDING_REVIEW && (counts()[ProductStatus.PENDING_REVIEW] ?? 0) > 0">
+            {{ tab.value ? (counts()[tab.value] ?? 0) : totalCount() }}
+          </span>
+        </button>
+      }
+    </nav>
   </div>
 
+  <!-- FILTERS -->
+  <div class="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center">
+    <div class="md:w-80">
+      <app-search-input placeholder="Search products or companies" [value]="q()" (search)="setFilters({ q: $event })" />
+    </div>
+    <select class="input md:w-56" [ngModel]="companyId() ?? ''" (ngModelChange)="setFilters({ companyId: $event || null })" aria-label="Company">
+      <option value="">All companies</option>
+      @for (c of companies(); track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+    <select class="input md:w-56" [ngModel]="subcategory()" (ngModelChange)="setFilters({ subcategory: $event || null })" aria-label="Subcategory">
+      <option value="">All subcategories</option>
+      <option value="none">Without subcategory</option>
+      @for (g of subcategoryGroups(); track g.category) {
+        <optgroup [label]="g.category">
+          @for (s of g.items; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </optgroup>
+      }
+    </select>
+    @if (hasFilters()) {
+      <button type="button" class="btn-ghost btn-sm self-start md:self-auto" (click)="clearFilters()">Clear filters</button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="m-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+      {{ error() }} <button type="button" class="btn-secondary btn-sm" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <!-- TABLE -->
+  <div class="relative overflow-x-auto">
+    @if (loading() && products().content.length) {
+      <div class="absolute inset-x-0 top-0 h-0.5 animate-pulse bg-brand-500"></div>
+    }
+
+    @if (loading() && !products().content.length) {
+      <div class="space-y-3 p-4">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="flex items-center gap-3"><div class="skeleton h-10 w-10"></div><div class="skeleton h-4 flex-1"></div><div class="skeleton h-4 w-24"></div></div>
+        }
+      </div>
+    } @else if (!products().content.length) {
+      <app-empty-state
+        [title]="hasFilters() || status() ? 'No products match these filters' : 'No products yet'"
+        [message]="hasFilters() || status() ? 'Try another search or clear the filters.' : 'Products created by you or submitted by companies appear here.'"
+        [icon]="icons.Package">
+        @if (hasFilters()) {
+          <button type="button" class="btn-secondary btn-sm" (click)="clearFilters()">Clear filters</button>
+        }
+      </app-empty-state>
+    } @else {
+      <table class="table-base min-w-[760px]" [class.opacity-60]="loading()">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Added</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products().content; track p.id) {
+            <tr class="row-link" [routerLink]="['/products', p.id]">
+              <td>
+                <div class="flex items-center gap-3">
+                  <img [src]="sharedService.getImageUrl(p.image?.url)" alt="" loading="lazy" class="h-10 w-10 shrink-0 rounded-lg border border-slate-200 bg-slate-50 object-cover" />
+                  <div class="min-w-0">
+                    <p class="max-w-xs truncate font-medium text-slate-900">{{ p.name }}</p>
+                    <p class="truncate text-xs" [class]="p.subcategoryName ? 'text-slate-500' : 'text-amber-700'">
+                      {{ p.subcategoryName ? p.category + ' › ' + p.subcategoryName : 'No subcategory' }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <a [routerLink]="['/companies', p.companyId]" (click)="$event.stopPropagation()" class="text-slate-700 hover:text-brand-700 hover:underline">{{ p.companyName }}</a>
+              </td>
+              <td><app-badge [value]="p.status" /></td>
+              <td class="whitespace-nowrap text-slate-500">{{ p.createdAt | date: 'mediumDate' }}</td>
+              <td (click)="$event.stopPropagation()" class="cursor-default">
+                <div class="flex justify-end gap-1.5">
+                  @switch (p.status) {
+                    @case (ProductStatus.PENDING_REVIEW) {
+                      <button type="button" class="btn-success btn-sm" [disabled]="busyId() === p.id" (click)="changeStatus(p, ProductStatus.PUBLISHED)">
+                        <lucide-icon [img]="icons.Check" [size]="14" /> Approve
+                      </button>
+                      <button type="button" class="btn-danger-outline btn-sm" [disabled]="busyId() === p.id" (click)="changeStatus(p, ProductStatus.REJECTED)">
+                        <lucide-icon [img]="icons.X" [size]="14" /> Reject
+                      </button>
+                    }
+                    @case (ProductStatus.PUBLISHED) {
+                      <button type="button" class="btn-secondary btn-sm" [disabled]="busyId() === p.id" (click)="changeStatus(p, ProductStatus.ARCHIVED)" title="Hide from the public site">
+                        <lucide-icon [img]="icons.Archive" [size]="14" /> Archive
+                      </button>
+                    }
+                    @default {
+                      <button type="button" class="btn-secondary btn-sm" [disabled]="busyId() === p.id" (click)="changeStatus(p, ProductStatus.PUBLISHED)">
+                        <lucide-icon [img]="icons.RotateCcw" [size]="14" /> Publish
+                      </button>
+                    }
+                  }
+                  <a [routerLink]="['/products', p.id, 'edit']" class="btn-ghost btn-sm" title="Edit" aria-label="Edit">
+                    <lucide-icon [img]="icons.Pencil" [size]="14" />
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <app-pagination [page]="products().number" [size]="size" [total]="products().totalElements" (pageChange)="setFilters({ page: $event })" />
 </div>

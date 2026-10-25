@@ -1,364 +1,228 @@
-<div class="max-w-5xl mx-auto p-6" *ngIf="company; else loadingTpl">
-  <div class="flex items-center gap-2">
+<a routerLink="/companies" class="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
+  <lucide-icon [img]="icons.ArrowLeft" [size]="16" /> Companies
+</a>
 
-    <button
-      [routerLink]="['/companies', id]"
-      (click)="$event.stopPropagation()"
-      class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100">
-      Edit
-    </button>
-
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5 text-slate-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor">
-
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 5l7 7-7 7"/>
-
-    </svg>
-
+@if (error()) {
+  <div class="card p-2">
+    <app-empty-state title="Company not available" [message]="error()!">
+      <a routerLink="/companies" class="btn-secondary btn-sm">Back to companies</a>
+    </app-empty-state>
   </div>
+} @else if (loading()) {
+  <div class="card overflow-hidden"><div class="skeleton h-40 w-full rounded-none"></div><div class="space-y-3 p-6"><div class="skeleton h-6 w-48"></div><div class="skeleton h-4 w-32"></div></div></div>
+} @else {
+  @if (company(); as c) {
+
   <!-- HEADER -->
-  <div class="flex items-start justify-between mb-6">
-
-    <div>
-
-      <h1 class="text-3xl font-bold text-slate-900">
-        {{ company.name }}
-      </h1>
-
-      <div class="flex items-center gap-2 mt-2 text-sm text-slate-500">
-
-        <span *ngIf="company.status == CompanyStatus.ACTIVE"
-              class="text-green-600 font-medium">
-          Active Company
-        </span>
-
-        <span *ngIf="company.status != CompanyStatus.ACTIVE"
-              class="text-slate-400">
-          Still not active
-        </span>
-
+  <div class="card overflow-hidden">
+    <div class="h-32 bg-gradient-to-r from-brand-600 to-brand-400 sm:h-40">
+      @if (c.bannerUrl) {
+        <img [src]="sharedService.getImageUrl(c.bannerUrl)" alt="" class="h-full w-full object-cover" />
+      }
+    </div>
+    <div class="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div class="flex items-end gap-4">
+        @if (c.logoUrl) {
+          <img [src]="sharedService.getImageUrl(c.logoUrl)" alt="" class="-mt-10 h-20 w-20 shrink-0 rounded-2xl border-4 border-white bg-white object-cover shadow-sm" />
+        } @else {
+          <span class="-mt-10 flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-4 border-white bg-slate-100 text-xl font-semibold text-slate-600 shadow-sm">{{ initials(c.name) }}</span>
+        }
+        <div class="min-w-0 pt-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="truncate text-xl font-semibold text-slate-900 sm:text-2xl">{{ c.name }}</h1>
+            <app-badge [value]="c.status" />
+          </div>
+          <p class="text-sm text-slate-500">{{ humanize(c.industry) }} · {{ humanize(c.country) }}</p>
+        </div>
       </div>
-
+      <div class="flex flex-wrap gap-2">
+        @for (a of statusActions(); track a.status) {
+          <button type="button" [class]="a.danger ? 'btn-secondary' : 'btn-success'" [disabled]="statusBusy()" (click)="applyStatus(a)">{{ a.label }}</button>
+        }
+        <a [routerLink]="['/companies', c.id, 'edit']" class="btn-primary"><lucide-icon [img]="icons.Pencil" [size]="16" /> Edit</a>
+      </div>
     </div>
 
-    <span class="text-xs bg-slate-100 px-3 py-1 rounded-full">
-      ID: {{ company.id }}
-    </span>
-
+    <!-- TABS -->
+    <nav class="flex gap-6 overflow-x-auto border-t border-slate-100 px-5 pt-3 sm:px-6" aria-label="Company sections">
+      <button type="button" class="tab" [class.tab-active]="tab() === 'overview'" (click)="selectTab('overview')">Overview</button>
+      <button type="button" class="tab" [class.tab-active]="tab() === 'products'" (click)="selectTab('products')">Products <span class="tab-count">{{ c.productCount | number }}</span></button>
+      <button type="button" class="tab" [class.tab-active]="tab() === 'members'" (click)="selectTab('members')">Members <span class="tab-count">{{ c.members?.length ?? 0 }}</span></button>
+    </nav>
   </div>
 
-  <!-- HERO -->
-  <div class="rounded-2xl overflow-hidden border bg-slate-50 mb-6">
-
-    <img
-      *ngIf="company.bannerUrl"
-      [src]="sharedService.getImageUrl(company.bannerUrl)"
-      class="w-full h-60 object-cover"
-    />
-
-    <div *ngIf="!company.bannerUrl"
-         class="h-60 flex items-center justify-center text-slate-400">
-      No banner image
+  @if (c.status === 'PENDING') {
+    <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      This company is waiting for verification. Check its details, then verify it to list it on the platform.
     </div>
+  }
 
-  </div>
+  <div class="mt-6">
+    @switch (tab()) {
 
-  <!-- CONTENT GRID -->
-  <div class="grid md:grid-cols-3 gap-6">
+      <!-- OVERVIEW -->
+      @case ('overview') {
+        <div class="grid gap-6 lg:grid-cols-3">
+          <div class="space-y-6 lg:col-span-2">
+            <section class="card p-5">
+              <h2 class="text-sm font-semibold text-slate-900">About</h2>
+              <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ c.description || 'No description yet.' }}</p>
+            </section>
 
-    <!-- LEFT -->
-    <div class="md:col-span-2 space-y-6">
-
-      <!-- DESCRIPTION -->
-      <div class="bg-white border rounded-2xl p-5">
-
-        <h2 class="font-semibold text-lg mb-3">
-          Description
-        </h2>
-
-        <p class="text-slate-600 leading-relaxed">
-          {{ company.description || 'No description available.' }}
-        </p>
-
-      </div>
-
-      <!-- MEMBERS -->
-      <div class="bg-white border rounded-2xl p-5">
-
-        <h2 class="font-semibold text-lg mb-4">
-          Members
-          <span class="text-sm text-slate-400">
-            ({{ company.members?.length || 0 }})
-          </span>
-        </h2>
-
-        <!-- ADD MEMBER -->
-        <div class="mb-5 rounded-xl border border-dashed border-slate-300 p-4">
-
-          <div class="text-sm font-medium text-slate-700 mb-2">
-            Add a member
+            <section class="card p-5">
+              <h2 class="text-sm font-semibold text-slate-900">Contact</h2>
+              <dl class="mt-3 space-y-3 text-sm">
+                <div class="flex items-start gap-3"><lucide-icon [img]="icons.Phone" [size]="16" class="mt-0.5 text-slate-400" />
+                  <dd class="text-slate-700">{{ c.phoneNumber || 'No phone number' }}</dd></div>
+                <div class="flex items-start gap-3"><lucide-icon [img]="icons.MapPin" [size]="16" class="mt-0.5 text-slate-400" />
+                  <dd class="text-slate-700">{{ c.address || 'No address' }}</dd></div>
+              </dl>
+              @if (c.socialLinks?.length) {
+                <div class="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                  @for (link of c.socialLinks; track link.id) {
+                    <a [href]="link.url" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50">
+                      @if (socialIcons[link.platform]) { <img [src]="socialIcons[link.platform]" alt="" class="h-4 w-4" /> }
+                      {{ humanize(link.platform) }}
+                      <lucide-icon [img]="icons.ExternalLink" [size]="12" class="text-slate-400" />
+                    </a>
+                  }
+                </div>
+              }
+            </section>
           </div>
 
-          <div class="flex flex-col gap-2 sm:flex-row">
-
-            <div class="relative flex-1">
-              <input
-                type="text"
-                [(ngModel)]="memberQuery"
-                (ngModelChange)="onMemberQueryChange($event)"
-                placeholder="Search a user by name or email"
-                autocomplete="off"
-                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-              />
-
-              <!-- search results -->
-              <div *ngIf="searchResults.length && !selectedUser"
-                   class="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border bg-white shadow-lg">
-                <button
-                  *ngFor="let u of searchResults"
-                  type="button"
-                  (click)="selectUser(u)"
-                  [disabled]="isAlreadyMember(u)"
-                  class="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
-                  <span>
-                    <span class="font-medium text-slate-800">{{ u.name }}</span>
-                    <span class="ml-1 text-slate-500">{{ u.email }}</span>
-                  </span>
-                  <span *ngIf="isAlreadyMember(u)" class="text-xs text-slate-400">already a member</span>
-                </button>
-              </div>
-
-              <div *ngIf="searching" class="mt-1 text-xs text-slate-400">Searching...</div>
-              <div *ngIf="!searching && memberQuery.trim().length >= 2 && !searchResults.length && !selectedUser"
-                   class="mt-1 text-xs text-slate-400">
-                No users found.
-              </div>
-            </div>
-
-            <select
-              [(ngModel)]="newMemberRole"
-              class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
-              <option *ngFor="let r of roleOptions" [ngValue]="r">{{ r }}</option>
-            </select>
-
-            <button
-              type="button"
-              (click)="addMember()"
-              [disabled]="!selectedUser || memberBusy"
-              class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
-              {{ memberBusy ? 'Saving...' : 'Add' }}
-            </button>
-
-          </div>
-
-          <div *ngIf="memberError" class="mt-2 text-sm text-red-600">{{ memberError }}</div>
-          <div *ngIf="memberSuccess" class="mt-2 text-sm text-green-600">{{ memberSuccess }}</div>
-
+          <aside class="space-y-6">
+            <section class="card p-5">
+              <h2 class="text-sm font-semibold text-slate-900">At a glance</h2>
+              <dl class="mt-3 space-y-3 text-sm">
+                <div class="flex justify-between"><dt class="text-slate-500">Products</dt><dd class="font-medium text-slate-900">{{ c.productCount | number }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">Members</dt><dd class="font-medium text-slate-900">{{ c.members?.length ?? 0 }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">Added</dt><dd class="font-medium text-slate-900">{{ c.createdAt ? (c.createdAt | date: 'mediumDate') : '–' }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">Added by</dt><dd class="font-medium text-slate-900">{{ c.createdBy?.name || '–' }}</dd></div>
+              </dl>
+            </section>
+            <section class="card p-5">
+              <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900"><lucide-icon [img]="icons.ShieldCheck" [size]="16" class="text-slate-400" /> Verification</h2>
+              @if (c.verifiedBy) {
+                <p class="mt-2 text-sm text-slate-600">Verified by <span class="font-medium text-slate-900">{{ c.verifiedBy.name }}</span>
+                  @if (c.verifiedAt) { on {{ c.verifiedAt | date: 'mediumDate' }} }</p>
+              } @else {
+                <p class="mt-2 text-sm text-slate-500">Not verified yet.</p>
+              }
+            </section>
+          </aside>
         </div>
-
-        <div *ngIf="company.members?.length; else noMembers"
-             class="space-y-3">
-
-          <div *ngFor="let m of company.members"
-               class="flex items-center justify-between gap-3 border rounded-xl p-3 hover:bg-slate-50">
-
-            <div class="min-w-0">
-
-              <div class="font-medium">
-                {{ m.user.name }}
-              </div>
-
-              <div class="truncate text-xs text-slate-500">
-                {{ m.user.email }} · joined {{ m.joinedAt | date:'mediumDate' }}
-              </div>
-
-            </div>
-
-            <div class="flex shrink-0 items-center gap-2">
-
-              <select
-                [ngModel]="m.companyRole"
-                (ngModelChange)="changeRole(m, $event)"
-                [disabled]="memberBusy"
-                class="rounded-lg border border-slate-300 px-2 py-1 text-xs">
-                <option *ngFor="let r of roleOptions" [ngValue]="r">{{ r }}</option>
-              </select>
-
-              <button
-                type="button"
-                (click)="removeMember(m)"
-                [disabled]="memberBusy"
-                class="rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50">
-                Remove
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <ng-template #noMembers>
-          <div class="text-sm text-slate-400">
-            No members in this company.
-          </div>
-        </ng-template>
-
-      </div>
+      }
 
       <!-- PRODUCTS -->
-      <div class="bg-white border rounded-2xl p-5">
-
-        <h2 class="font-semibold text-lg mb-4">
-          Products
-          <span class="text-sm text-slate-400">
-      ({{ company.products?.length || 0 }})
-    </span>
-        </h2>
-
-
-
-        <div *ngIf="company.products?.length; else noProducts"
-             class="space-y-3">
-
-          <div
-            *ngFor="let p of company.products"
-            [routerLink]="['/products/details', p.id]"
-            class="flex items-center justify-between rounded-xl border p-3 hover:bg-slate-50 hover:shadow-sm cursor-pointer transition">
-
-            <div class="flex items-center gap-4">
-
-              <img
-                [src]="sharedService.getImageUrl(p.imageUrl)"
-                class="h-14 w-14 rounded-lg object-cover border"
-              />
-
-              <div>
-
-                <div class="font-semibold text-slate-800">
-                  {{ p.name }}
-                </div>
-
-                <div class="mt-1 text-xs text-slate-500">
-                  {{ p.category || 'No category specified.' }}
-                </div>
-
-                <span
-                  class="mt-2 inline-block rounded-full px-2 py-0.5 text-[11px]"
-                  [ngClass]="{
-          'bg-green-100 text-green-700': p.status === 'PUBLISHED',
-          'bg-yellow-100 text-yellow-700': p.status === 'PENDING_REVIEW',
-          'bg-red-100 text-red-700': p.status === 'REJECTED',
-          'bg-gray-100 text-gray-700': p.status === 'DRAFT',
-          'bg-slate-200 text-slate-700': p.status === 'ARCHIVED'
-        }">
-
-        {{ p.status.replace('_',' ') }}
-
-      </span>
-
-              </div>
-
+      @case ('products') {
+        <div class="card">
+          <div class="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex flex-wrap gap-1.5">
+              @for (t of productTabs; track t.label) {
+                <button type="button" class="rounded-full px-3 py-1 text-xs font-medium transition"
+                        [class]="productStatus() === t.value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                        (click)="filterProducts({ status: t.value })">
+                  {{ t.label }} {{ t.value ? (productCounts()[t.value] ?? 0) : c.productCount }}
+                </button>
+              }
             </div>
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"/>
-
-            </svg>
-
+            <div class="flex gap-2">
+              <div class="w-full lg:w-64"><app-search-input placeholder="Search this company's products" (search)="filterProducts({ q: $event })" /></div>
+              <a routerLink="/products/new" [queryParams]="{ companyId: c.id }" class="btn-secondary shrink-0"><lucide-icon [img]="icons.Plus" [size]="16" /> Add</a>
+            </div>
           </div>
 
+          @if (productsLoading() && !products().content.length) {
+            <div class="space-y-3 p-4">@for (i of [1, 2, 3]; track i) { <div class="skeleton h-10 w-full"></div> }</div>
+          } @else if (!products().content.length) {
+            <app-empty-state title="No products here" [message]="productQuery() || productStatus() ? 'Try another search or status.' : 'This company has no products yet.'" [icon]="icons.Package" />
+          } @else {
+            <ul class="divide-y divide-slate-100" [class.opacity-60]="productsLoading()">
+              @for (p of products().content; track p.id) {
+                <li>
+                  <a [routerLink]="['/products', p.id]" class="flex items-center gap-3 px-4 py-3 transition hover:bg-slate-50">
+                    <img [src]="sharedService.getImageUrl(p.image?.url)" alt="" loading="lazy" class="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-cover" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-medium text-slate-900">{{ p.name }}</span>
+                      <span class="block truncate text-xs text-slate-500">{{ p.subcategoryName ? p.category + ' › ' + p.subcategoryName : 'No subcategory' }}</span>
+                    </span>
+                    <app-badge [value]="p.status" />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+          <app-pagination [page]="products().number" [size]="productPageSize" [total]="products().totalElements" (pageChange)="loadProducts($event)" />
         </div>
+      }
 
-        <ng-template #noProducts>
+      <!-- MEMBERS -->
+      @case ('members') {
+        <div class="grid gap-6 lg:grid-cols-3">
+          <section class="card lg:col-span-2">
+            <div class="border-b border-slate-100 px-5 py-4">
+              <h2 class="text-sm font-semibold text-slate-900">Team</h2>
+              <p class="text-xs text-slate-500">Members can use the company portal. Heads can also manage the team.</p>
+            </div>
+            @if (c.members?.length) {
+              <ul class="divide-y divide-slate-100">
+                @for (m of c.members; track m.user.id) {
+                  <li class="flex items-center gap-3 px-5 py-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{{ initials(m.user.name) }}</span>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-medium text-slate-900">{{ m.user.name }}</p>
+                      <p class="truncate text-xs text-slate-500">{{ m.user.email }} · joined {{ m.joinedAt | date: 'mediumDate' }}</p>
+                    </div>
+                    <select class="input w-auto py-1 text-xs" [ngModel]="m.companyRole" (ngModelChange)="changeRole(m, $event)" [disabled]="memberBusy()" aria-label="Role">
+                      @for (r of roleOptions; track r) { <option [ngValue]="r">{{ humanize(r) }}</option> }
+                    </select>
+                    <button type="button" class="btn-ghost btn-sm text-red-600 hover:bg-red-50 hover:text-red-700" [disabled]="memberBusy()" (click)="removeMember(m)" aria-label="Remove member">
+                      <lucide-icon [img]="icons.Trash2" [size]="14" />
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <app-empty-state title="No members yet" message="Add someone so the company can manage its products and answer reviews." [icon]="icons.Users" />
+            }
+          </section>
 
-          <div class="text-sm text-slate-400">
-            This company has no products.
-          </div>
-
-        </ng-template>
-
-      </div>
-
-
-    </div>
-
-    <!-- RIGHT SIDEBAR -->
-    <div class="space-y-6">
-
-      <!-- LOGO -->
-      <div class="bg-white border rounded-2xl p-5 text-center">
-
-        <img
-          *ngIf="company.logoUrl"
-          [src]="sharedService.getImageUrl(company.logoUrl)"
-          class="w-20 h-20 mx-auto rounded-full object-cover border"
-        />
-
-        <div *ngIf="!company.logoUrl"
-             class="w-20 h-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-          N/A
+          <section class="card h-fit p-5">
+            <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900"><lucide-icon [img]="icons.UserPlus" [size]="16" class="text-slate-400" /> Add a member</h2>
+            <div class="mt-4 space-y-3">
+              <div class="relative">
+                <label class="label" for="member-search">User</label>
+                <input id="member-search" type="text" class="input" autocomplete="off" placeholder="Name or email"
+                       [(ngModel)]="memberQuery" (ngModelChange)="onMemberQueryChange($event)" />
+                @if (searchResults().length && !selectedUser()) {
+                  <div class="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+                    @for (u of searchResults(); track u.id) {
+                      <button type="button" (click)="selectUser(u)" [disabled]="isAlreadyMember(u)"
+                              class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                        <span class="min-w-0"><span class="block truncate font-medium text-slate-800">{{ u.name }}</span><span class="block truncate text-xs text-slate-500">{{ u.email }}</span></span>
+                        @if (isAlreadyMember(u)) { <span class="shrink-0 text-xs text-slate-400">member</span> }
+                      </button>
+                    }
+                  </div>
+                }
+                @if (searching()) { <p class="hint">Searching…</p> }
+                @else if (memberQuery.trim().length >= 2 && !searchResults().length && !selectedUser()) { <p class="hint">No users found.</p> }
+              </div>
+              <div>
+                <label class="label" for="member-role">Role</label>
+                <select id="member-role" class="input" [(ngModel)]="newMemberRole">
+                  @for (r of roleOptions; track r) { <option [ngValue]="r">{{ humanize(r) }}</option> }
+                </select>
+              </div>
+              <button type="button" class="btn-primary w-full" [disabled]="!selectedUser() || memberBusy()" (click)="addMember()">Add to {{ c.name }}</button>
+              <p class="hint">A user can belong to one company at a time.</p>
+            </div>
+          </section>
         </div>
-
-        <div class="mt-3 text-sm text-slate-500">
-          Company Logo
-        </div>
-
-      </div>
-
-      <!-- QUICK INFO -->
-      <div class="bg-white border rounded-2xl p-5 space-y-3 text-sm">
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400">Status</span>
-          <span
-            class="px-2 py-1 text-xs font-medium rounded-full"
-            [ngClass]="{
-              'bg-yellow-100 text-yellow-700': company.status === 'PENDING',
-              'bg-green-100 text-green-700': company.status === 'ACTIVE',
-              'bg-red-100 text-red-700': company.status === 'REJECTED',
-              'bg-orange-100 text-orange-700': company.status === 'SUSPENDED',
-              'bg-gray-100 text-gray-600': company.status === 'ARCHIVED'
-            }"
-          >
-            {{ company.status }}
-          </span>
-
-        </div>
-
-        <div class="flex justify-between px-1  ">
-          <span class="text-slate-400 ">Members</span>
-          <span>{{ company.members?.length || 0 }}</span>
-        </div>
-
-      </div>
-
-    </div>
-
+      }
+    }
   </div>
-
-</div>
-
-<!-- LOADING -->
-<ng-template #loadingTpl>
-  <div class="h-[60vh] flex items-center justify-center text-slate-400">
-    Loading company details...
-  </div>
-</ng-template>
+}
+}

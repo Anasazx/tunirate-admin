@@ -1,0 +1,129 @@
+<button type="button" (click)="cancel()" class="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
+  <lucide-icon [img]="icons.ArrowLeft" [size]="16" /> {{ isEdit() ? 'Back to company' : 'Companies' }}
+</button>
+
+<h1 class="mb-6 text-2xl font-semibold text-slate-900">{{ isEdit() ? 'Edit company' : 'New company' }}</h1>
+
+@if (loading()) {
+  <div class="card space-y-4 p-6"><div class="skeleton h-9 w-full"></div><div class="skeleton h-24 w-full"></div></div>
+} @else {
+  <form class="grid gap-6 lg:grid-cols-3" (ngSubmit)="save()" novalidate>
+    <div class="space-y-6 lg:col-span-2">
+
+      <!-- BRANDING -->
+      <section class="card overflow-hidden">
+        <label class="group relative block h-36 cursor-pointer bg-gradient-to-r from-brand-600 to-brand-400">
+          @if (bannerPreview() || currentBanner()) {
+            <img [src]="bannerPreview() ?? sharedService.getImageUrl(currentBanner())" alt="" class="h-full w-full object-cover" />
+          }
+          <span class="absolute inset-0 flex items-center justify-center gap-2 bg-slate-900/0 text-sm font-medium text-white opacity-0 transition group-hover:bg-slate-900/40 group-hover:opacity-100">
+            <lucide-icon [img]="icons.ImagePlus" [size]="18" /> {{ currentBanner() || bannerPreview() ? 'Change banner' : 'Add a banner' }}
+          </span>
+          <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" (change)="onImageSelected($event, 'banner')" />
+        </label>
+        <div class="flex items-end gap-4 px-6 pb-5">
+          <label class="group relative -mt-10 block h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-2xl border-4 border-white bg-slate-100 shadow-sm">
+            @if (logoPreview() || currentLogo()) {
+              <img [src]="logoPreview() ?? sharedService.getImageUrl(currentLogo())" alt="" class="h-full w-full object-cover" />
+            } @else {
+              <span class="flex h-full w-full items-center justify-center text-slate-400"><lucide-icon [img]="icons.ImagePlus" [size]="22" /></span>
+            }
+            <span class="absolute inset-0 flex items-center justify-center bg-slate-900/40 text-[11px] font-medium text-white opacity-0 transition group-hover:opacity-100">Logo</span>
+            <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" (change)="onImageSelected($event, 'logo')" />
+          </label>
+          <p class="pb-1 text-xs text-slate-500">Click the banner or the logo to upload an image (up to 10 MB).</p>
+        </div>
+      </section>
+
+      <!-- BASICS -->
+      <section class="card space-y-5 p-6">
+        <h2 class="text-sm font-semibold text-slate-900">Basics</h2>
+        <div>
+          <label class="label" for="name">Name <span class="text-red-500">*</span></label>
+          <input id="name" name="name" class="input" [(ngModel)]="form.name" maxlength="150" [class.!border-red-400]="submitted() && !form.name.trim()" />
+          @if (submitted() && !form.name.trim()) { <p class="mt-1 text-xs text-red-600">Name is required.</p> }
+        </div>
+        <div>
+          <label class="label" for="description">About</label>
+          <textarea id="description" name="description" rows="5" class="input" [(ngModel)]="form.description" placeholder="What does the company do?"></textarea>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="label" for="industry">Industry</label>
+            <select id="industry" name="industry" class="input" [(ngModel)]="form.industry">
+              @for (i of industries; track i) { <option [ngValue]="i">{{ humanize(i) }}</option> }
+            </select>
+          </div>
+          <div>
+            <label class="label" for="country">Country</label>
+            <select id="country" name="country" class="input" [(ngModel)]="form.country">
+              @for (c of countries; track c) { <option [ngValue]="c">{{ humanize(c) }}</option> }
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT & LINKS -->
+      <section class="card space-y-5 p-6">
+        <h2 class="text-sm font-semibold text-slate-900">Contact & links</h2>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="label" for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" class="input" [(ngModel)]="form.phoneNumber" placeholder="+216 …" />
+          </div>
+          <div>
+            <label class="label" for="address">Address</label>
+            <input id="address" name="address" class="input" [(ngModel)]="form.address" />
+          </div>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            <span class="label mb-0">Website & social media</span>
+            <button type="button" class="btn-ghost btn-sm" (click)="addSocialLink()"><lucide-icon [img]="icons.Plus" [size]="14" /> Add link</button>
+          </div>
+          @if (!form.socialLinks.length) {
+            <p class="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">No links yet.</p>
+          }
+          <div class="space-y-2">
+            @for (link of form.socialLinks; track $index; let i = $index) {
+              <div class="flex items-center gap-2">
+                <select class="input w-40 shrink-0" [name]="'platform' + i" [(ngModel)]="link.platform" aria-label="Platform">
+                  @for (p of platforms; track p) { <option [ngValue]="p">{{ humanize(p) }}</option> }
+                </select>
+                <input class="input" [name]="'url' + i" [(ngModel)]="link.url" placeholder="https://" aria-label="Link"
+                       [class.!border-red-400]="submitted() && !link.url.trim().startsWith('http')" />
+                <button type="button" class="btn-ghost btn-sm shrink-0 text-slate-400 hover:text-red-600" (click)="removeSocialLink(i)" aria-label="Remove link">
+                  <lucide-icon [img]="icons.Trash2" [size]="16" />
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SIDE -->
+    <div class="space-y-6">
+      <section class="card space-y-3 p-6">
+        <h2 class="text-sm font-semibold text-slate-900">Status</h2>
+        <select id="status" name="status" class="input" [(ngModel)]="form.status" aria-label="Status">
+          @for (s of statuses; track s) { <option [ngValue]="s">{{ humanize(s) }}</option> }
+        </select>
+        <p class="hint">Active companies are listed on the platform. Archiving is only possible when the company has no products.</p>
+      </section>
+
+      @if (error()) {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{{ error() }}</div>
+      }
+
+      <div class="flex gap-2">
+        <button type="submit" class="btn-primary flex-1" [disabled]="saving()">
+          @if (saving()) { <lucide-icon [img]="icons.LoaderCircle" [size]="16" class="animate-spin" /> }
+          {{ isEdit() ? 'Save changes' : 'Create company' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+      </div>
+    </div>
+  </form>
+}

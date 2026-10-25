@@ -1,103 +1,47 @@
-<aside class="fixed top-16 left-0 bottom-0 w-64 bg-gray-900 text-white flex flex-col border-r border-gray-800 overflow-y-auto">
+<!-- Backdrop on small screens -->
+@if (open()) {
+  <div class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" (click)="close.emit()"></div>
+}
 
-  <!-- LOGO -->
-  <div class="px-6 py-7 border-b border-gray-800">
-    <div class="flex items-center gap-3">
+<aside class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:translate-x-0"
+       [class.-translate-x-full]="!open()">
 
-      <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold">
-        TR
-      </div>
-
-      <div>
-        <p class="font-bold text-lg leading-tight">TuniRate</p>
-        <p class="text-xs text-gray-400">Admin Panel</p>
-      </div>
-
-    </div>
+  <div class="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5">
+    <a routerLink="/" class="flex items-center gap-2.5">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">R</span>
+      <span>
+        <span class="block text-sm font-semibold leading-tight text-slate-900">ReviewHood</span>
+        <span class="block text-xs text-slate-500">Admin</span>
+      </span>
+    </a>
+    <button type="button" class="btn-ghost btn-sm lg:hidden" (click)="close.emit()" aria-label="Close menu">
+      <lucide-icon [img]="X" [size]="18" />
+    </button>
   </div>
 
-  <!-- NAV -->
-  <nav class="flex-1 px-3 py-6">
-
-    <p class="text-xs font-semibold text-gray-500 uppercase px-3 mb-3">
-      Navigation
-    </p>
-
-    <ul class="space-y-1">
-
-      <li *ngFor="let item of menuItems">
-
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="bg-gray-800 text-white"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition group">
-
-          <!-- ICON -->
-          <span class="w-5 h-5 text-gray-400 group-hover:text-white">
-
-            <ng-container [ngSwitch]="item.icon">
-
-              <!-- Dashboard -->
-              <svg *ngSwitchCase="'dashboard'" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 13h8V3H3v10zm10 8h8V11h-8v10zM3 21h8v-6H3v6zm10-18v6h8V3h-8z"/>
-              </svg>
-
-              <!-- Box -->
-              <svg *ngSwitchCase="'box'" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-              </svg>
-
-              <!-- Grid -->
-              <svg *ngSwitchCase="'grid'" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h7"/>
-              </svg>
-
-              <!-- Building -->
-              <svg *ngSwitchCase="'building'" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 21h18M9 8h6m-6 4h6M5 21V7a2 2 0 012-2h10a2 2 0 012 2v14"/>
-              </svg>
-
-              <!-- Users -->
-              <svg *ngSwitchCase="'users'" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 000 7.75"/>
-              </svg>
-
-            </ng-container>
-
-          </span>
-
-          <!-- LABEL -->
-          <span class="font-medium text-sm">
-            {{ item.label }}
-          </span>
-
-        </a>
-
-      </li>
-
-    </ul>
-
+  <nav class="flex-1 overflow-y-auto px-3 py-4">
+    @for (section of sections; track section.title) {
+      <p class="mb-1 mt-4 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 first:mt-0">{{ section.title }}</p>
+      <ul class="space-y-0.5">
+        @for (item of section.items; track item.path) {
+          <li>
+            <a [routerLink]="item.path"
+               routerLinkActive="bg-brand-50 text-brand-700 [&_.nav-icon]:text-brand-600"
+               [routerLinkActiveOptions]="{ exact: !!item.exact }"
+               class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
+              <lucide-icon [img]="item.icon" [size]="18" class="nav-icon text-slate-400 group-hover:text-slate-600" />
+              <span class="flex-1">{{ item.label }}</span>
+              @if (item.badge && item.badge() > 0) {
+                <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800" [title]="item.badge() + ' waiting for review'">
+                  {{ item.badge() }}
+                </span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    }
   </nav>
 
-  <!-- FOOTER -->
-  <div class="px-6 py-4 border-t border-gray-800 text-center">
-    <p class="text-xs text-gray-500">© 2026 TuniRate</p>
-  </div>
-
+  <p class="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">© {{ 2026 }} ReviewHood</p>
 </aside>

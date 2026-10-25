@@ -1,4 +1,43 @@
-/* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Shared building blocks, so every page looks and behaves the same */
+@layer components {
+  .card {
+    /* min-w-0 lets cards shrink inside grid/flex layouts instead of overflowing on phones */
+    @apply min-w-0 rounded-xl border border-slate-200 bg-white shadow-card;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-sm { @apply px-2.5 py-1.5 text-xs; }
+  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700; }
+  .btn-secondary { @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+  .btn-ghost { @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
+  .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+  .btn-danger-outline { @apply btn border border-red-200 bg-white text-red-600 hover:bg-red-50; }
+  .btn-success { @apply btn bg-emerald-600 text-white hover:bg-emerald-700; }
+
+  .input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           disabled:cursor-not-allowed disabled:bg-slate-50;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .hint { @apply mt-1 text-xs text-slate-500; }
+
+  .table-base { @apply w-full text-left text-sm; }
+  .table-base thead th { @apply bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .table-base tbody td { @apply border-t border-slate-100 px-4 py-3 align-middle; }
+  .table-base tbody tr.row-link { @apply cursor-pointer transition hover:bg-slate-50; }
+
+  .tab { @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-1 pb-3 text-sm font-medium text-slate-500 transition hover:text-slate-800; }
+  .tab-active { @apply border-brand-600 text-brand-700; }
+  .tab-count { @apply rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600; }
+
+  .skeleton { @apply animate-pulse rounded bg-slate-200; }
+}

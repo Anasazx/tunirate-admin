@@ -1,15 +1,13 @@
-<div class="min-h-screen bg-gray-50 pt-16">
-  <!-- Header -->
-  <app-admin-header></app-admin-header>
+<div class="min-h-screen bg-slate-50">
+  <app-admin-sidebar [open]="menuOpen()" (close)="menuOpen.set(false)" />
 
-  <!-- Sidebar + Content -->
-  <div class="relative pl-64">
-    <!-- Sidebar (fixed) -->
-    <app-admin-sidebar></app-admin-sidebar>
+  <div class="lg:pl-64">
+    <app-admin-header (menu)="menuOpen.set(true)" />
 
-    <!-- Main Content -->
-    <main class="w-full p-6">
-      <router-outlet></router-outlet>
+    <main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <router-outlet />
     </main>
   </div>
+
+  <app-overlays />
 </div>

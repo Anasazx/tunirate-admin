@@ -1,26 +1,24 @@
 import { ProductImageResponse } from "./productImageResponse.model";
-import { ReviewResponse } from "../../../../core/model/dto/reviewDTO/reviewResponse.model";
-import {ProductStatus} from '../../enums/productStatus.enum.model';
+import { ProductStatus } from '../../enums/productStatus.enum.model';
 
+// GET /product/op/{id}/details
 export interface DetailedProductResponse {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   category: string | null;
-  subcategoryId: string | null;
+  subcategoryId: number | null;
   subcategoryName: string | null;
   companyId: number;
   companyName: string;
-  companyLogoUrl: string;
-  averageRating: number | null;
+  companyIsVerified: boolean;
+  companyLogoUrl: string | null;
+  averageRating: number;
   reviewsCount: number;
-  reviews: ReviewResponse[];
   images: ProductImageResponse[];
-  createdByName: string;
-  createdById: number;
+  createdByName: string | null;
+  createdById: number | null;
   updatedByName: string | null;
   updatedById: number | null;
   status: ProductStatus;
 }
-
-

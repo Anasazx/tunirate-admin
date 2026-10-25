@@ -1,0 +1,97 @@
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-slate-900">Suggestions</h1>
+  <p class="mt-1 text-sm text-slate-500">Products users asked to see on ReviewHood. Approve one by linking it to the product once it exists.</p>
+</div>
+
+<div class="card">
+  <div class="overflow-x-auto border-b border-slate-200 px-4">
+    <nav class="flex gap-6 pt-3" aria-label="Filter by status">
+      @for (t of tabs; track t.label) {
+        <button type="button" class="tab" [class.tab-active]="status() === t.value" (click)="setStatus(t.value)">{{ t.label }}</button>
+      }
+    </nav>
+  </div>
+
+  @if (error()) {
+    <div class="m-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+      {{ error() }} <button type="button" class="btn-secondary btn-sm" (click)="load()">Retry</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="space-y-3 p-4">@for (i of [1, 2, 3]; track i) { <div class="skeleton h-16 w-full"></div> }</div>
+  } @else if (!suggestions().length) {
+    <app-empty-state [title]="status() === 'PENDING' ? 'No suggestions waiting' : 'Nothing here'"
+                     [message]="status() === 'PENDING' ? 'When users suggest a product, it shows up here.' : ''" [icon]="icons.Lightbulb" />
+  } @else {
+    <ul class="divide-y divide-slate-100">
+      @for (s of suggestions(); track s.id) {
+        <li class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-medium text-slate-900">{{ s.name }}</p>
+              @if (s.status !== 'PENDING') { <app-badge [value]="s.status" /> }
+            </div>
+            @if (s.companyName) {
+              <p class="mt-0.5 flex items-center gap-1.5 text-sm text-slate-600"><lucide-icon [img]="icons.Building2" [size]="14" class="text-slate-400" /> {{ s.companyName }}</p>
+            }
+            @if (s.description) { <p class="mt-1 line-clamp-3 text-sm text-slate-600">{{ s.description }}</p> }
+            <p class="mt-1.5 text-xs text-slate-400">
+              Suggested by {{ s.userName ?? 'a user' }} · {{ timeAgo(s.createdAt) }}
+              @if (s.productId) { · linked to <a [routerLink]="['/products', s.productId]" class="font-medium text-brand-600 hover:underline">{{ s.productName }}</a> }
+            </p>
+          </div>
+          @if (s.status === 'PENDING') {
+            <div class="flex shrink-0 gap-2">
+              <button type="button" class="btn-success btn-sm" [disabled]="busyId() === s.id" (click)="openApprove(s)">
+                <lucide-icon [img]="icons.Check" [size]="14" /> Approve
+              </button>
+              <button type="button" class="btn-danger-outline btn-sm" [disabled]="busyId() === s.id" (click)="reject(s)">
+                <lucide-icon [img]="icons.X" [size]="14" /> Reject
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- APPROVE DIALOG -->
+@if (approving(); as s) {
+  <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:items-center" (click)="approving.set(null)">
+    <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl" role="dialog" aria-modal="true" aria-labelledby="approve-title" (click)="$event.stopPropagation()">
+      <div class="border-b border-slate-100 px-6 py-4">
+        <h3 id="approve-title" class="text-base font-semibold text-slate-900">Approve "{{ s.name }}"</h3>
+        <p class="mt-1 text-sm text-slate-500">Pick the product on ReviewHood that matches this suggestion.</p>
+      </div>
+      <div class="space-y-3 px-6 py-4">
+        <app-search-input placeholder="Search products" [value]="s.name" (search)="searchProducts($event)" />
+        @if (productSearching()) {
+          <p class="text-sm text-slate-500">Searching…</p>
+        } @else if (!productResults().length) {
+          <p class="rounded-lg bg-slate-50 px-3 py-4 text-center text-sm text-slate-500">No matching product. Create it first, then approve.</p>
+        } @else {
+          <ul class="max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+            @for (p of productResults(); track p.id) {
+              <li>
+                <button type="button" class="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50" [disabled]="busyId() === s.id" (click)="approveWith(p)">
+                  <img [src]="sharedService.getImageUrl(p.image?.url)" alt="" class="h-9 w-9 shrink-0 rounded-md border border-slate-200 object-cover" />
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-medium text-slate-900">{{ p.name }}</span>
+                    <span class="block truncate text-xs text-slate-500">{{ p.companyName }}</span>
+                  </span>
+                  <app-badge [value]="p.status" />
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+      <div class="flex items-center justify-between gap-2 border-t border-slate-100 px-6 py-4">
+        <button type="button" class="btn-ghost btn-sm" (click)="createProductFrom(s)"><lucide-icon [img]="icons.Plus" [size]="14" /> Create it as a new product</button>
+        <button type="button" class="btn-secondary" (click)="approving.set(null)">Cancel</button>
+      </div>
+    </div>
+  </div>
+}

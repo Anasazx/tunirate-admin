@@ -1,3 +1,4 @@
 export interface UserUpdateRequest {
-  globalRole: string;
+  name?: string;
+  globalRole?: 'USER' | 'ADMIN';
 }
