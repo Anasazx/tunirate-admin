@@ -7,7 +7,7 @@ export class SharedService {
 
 
 
-  localDev = true;
+  localDev = false;
 
   publicUrl!: string;
   uploadPublicUrl!: string;
@@ -18,8 +18,8 @@ export class SharedService {
       this.uploadPublicUrl = "http://localhost:9000/uploads";
     }
     else {
-      this.publicUrl = "https://reviewhood.tech/api";
-      this.uploadPublicUrl = "https://reviewhood.tech/uploads";
+      this.publicUrl = "https://api.reviewhood.tech";
+      this.uploadPublicUrl = "https://api.reviewhood.tech/uploads";
     }
   }
 
