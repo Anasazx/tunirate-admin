@@ -31,6 +31,7 @@ export const routes: Routes = [
 
       { path: 'categories', title: 'Categories · ReviewHood Admin', loadComponent: () => import('./features/category/pages/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
       { path: 'users', title: 'Users · ReviewHood Admin', loadComponent: () => import('./features/users/pages/users-management/users-management.component').then(m => m.UsersManagementComponent) },
+      { path: 'reviews', title: 'Reviews · ReviewHood Admin', loadComponent: () => import('./features/reviews/pages/reviews-management/reviews-management.component').then(m => m.ReviewsManagementComponent) },
       { path: 'suggestions', title: 'Suggestions · ReviewHood Admin', loadComponent: () => import('./features/suggestions/pages/suggestions-management/suggestions-management.component').then(m => m.SuggestionsManagementComponent) },
 
       // Old URLs, kept so existing links still work

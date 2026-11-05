@@ -15,6 +15,20 @@ export interface ProductReview {
   createdAt: string;
 }
 
+// Review as returned by GET /reviews (guests have a null user id)
+export interface AdminReview extends Omit<ProductReview, 'user'> {
+  user: { id: number | null; name: string; avatarUrl: string | null };
+  productId: number;
+  productName: string;
+}
+
+export interface ReviewFilters {
+  q?: string;
+  rating?: number | null;
+  page?: number;
+  size?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,6 +38,16 @@ export class ReviewService {
 
   constructor(private sharedService: SharedService, private http: HttpClient) {
     this.reviewUrl = `${this.sharedService.publicUrl}/reviews`;
+  }
+
+  getReviewsAsAdmin(filters: ReviewFilters = {}): Observable<Page<AdminReview>> {
+    let params = new HttpParams()
+      .set('page', filters.page ?? 0)
+      .set('size', filters.size ?? 20)
+      .set('sort', 'createdAt,desc');
+    if (filters.q) params = params.set('q', filters.q);
+    if (filters.rating) params = params.set('rating', filters.rating);
+    return this.http.get<Page<AdminReview>>(this.reviewUrl, { params });
   }
 
   getProductReviews(productId: number, page = 0, size = 5): Observable<{ reviews: Page<ProductReview> }> {

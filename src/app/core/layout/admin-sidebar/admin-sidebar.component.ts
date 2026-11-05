@@ -2,7 +2,7 @@ import { Component, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule, LucideIconData } from 'lucide-angular';
 import { NavCountsService } from '../../services/navCounts.service';
-import { Building2, LayoutDashboard, Lightbulb, Package, Tags, Users, X } from '../../ui/icons';
+import { Building2, LayoutDashboard, Lightbulb, MessageSquare, Package, Tags, Users, X } from '../../ui/icons';
 
 interface NavItem {
   label: string;
@@ -42,6 +42,7 @@ export class AdminSidebarComponent {
       title: 'Community',
       items: [
         { label: 'Users', path: '/users', icon: Users },
+        { label: 'Reviews', path: '/reviews', icon: MessageSquare },
         { label: 'Suggestions', path: '/suggestions', icon: Lightbulb, badge: () => this.counts.pendingSuggestions() },
       ],
     },

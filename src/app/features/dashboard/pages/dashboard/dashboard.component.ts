@@ -90,7 +90,7 @@ export class DashboardComponent implements OnInit {
       { label: 'Users', value: d.totalUsers, recent: this.sum(d.usersOverTime), icon: Users, link: '/users' },
       { label: 'Companies', value: d.totalCompanies, recent: this.sum(d.companiesOverTime), icon: Building2, link: '/companies' },
       { label: 'Products', value: d.totalProducts, recent: -1, icon: Package, link: '/products' },
-      { label: 'Reviews', value: d.totalReviews, recent: this.sum(d.reviewsOverTime), icon: Star, link: '/products' },
+      { label: 'Reviews', value: d.totalReviews, recent: this.sum(d.reviewsOverTime), icon: Star, link: '/reviews' },
     ];
   });
 
