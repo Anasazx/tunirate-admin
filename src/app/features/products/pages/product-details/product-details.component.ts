@@ -17,12 +17,13 @@ import { ToastService } from '../../../../core/ui/toast.service';
 import { ConfirmService } from '../../../../core/ui/confirm.service';
 import { apiErrorMessage } from '../../../../core/ui/api-error';
 import { initials, timeAgo } from '../../../../core/ui/format';
+import { ProductSeoCardComponent } from './product-seo-card/product-seo-card.component';
 import { Archive, ArrowLeft, Building2, Check, ImageOff, MessageSquare, Pencil, RotateCcw, Star, X } from '../../../../core/ui/icons';
 
 @Component({
   selector: 'app-product-details',
   standalone: true,
-  imports: [DecimalPipe, RouterLink, LucideAngularModule, BadgeComponent, PaginationComponent, EmptyStateComponent],
+  imports: [DecimalPipe, RouterLink, LucideAngularModule, BadgeComponent, PaginationComponent, EmptyStateComponent, ProductSeoCardComponent],
   templateUrl: './product-details.component.html',
 })
 export class ProductDetailsComponent implements OnInit {

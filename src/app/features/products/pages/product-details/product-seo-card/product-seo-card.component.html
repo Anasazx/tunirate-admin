@@ -1,0 +1,89 @@
+<div class="card mt-6">
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+      <lucide-icon [img]="icons.Globe" [size]="16" class="text-slate-400" /> Search engines
+    </h2>
+    @if (seo(); as s) {
+      @if (s.indexable) {
+        <span class="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">Indexed by Google</span>
+      } @else {
+        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">Hidden from Google: too few reviews</span>
+      }
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-3 p-5"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-24 w-full"></div></div>
+  } @else if (seo()) {
+    <form class="space-y-5 p-5" (ngSubmit)="save()">
+      <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
+        <input type="checkbox" name="featured" class="mt-0.5 h-4 w-4 accent-brand-600" [(ngModel)]="featured" />
+        <span>
+          <span class="block text-sm font-medium text-slate-900">Featured</span>
+          <span class="block text-sm text-slate-500">Index this page even without reviews. Only use it once the content below is written.</span>
+        </span>
+      </label>
+
+      <div>
+        <label class="label" for="seoDescription">In-depth description</label>
+        <textarea id="seoDescription" name="seoDescription" rows="6" class="input" [(ngModel)]="seoDescription"
+                  placeholder="Your own words: what it is, who it suits, how it compares. Not copied from the brand's site."></textarea>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="pros">Pros <span class="font-normal text-slate-400">· one per line</span></label>
+          <textarea id="pros" name="pros" rows="4" class="input" [(ngModel)]="pros"></textarea>
+        </div>
+        <div>
+          <label class="label" for="cons">Cons <span class="font-normal text-slate-400">· one per line</span></label>
+          <textarea id="cons" name="cons" rows="4" class="input" [(ngModel)]="cons"></textarea>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label class="label" for="priceTnd">Price in Tunisia (TND)</label>
+          <input id="priceTnd" name="priceTnd" type="number" min="0" step="0.001" class="input" [(ngModel)]="priceTnd" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label" for="whereToBuy">Where to buy</label>
+          <textarea id="whereToBuy" name="whereToBuy" rows="2" class="input" [(ngModel)]="whereToBuy"
+                    placeholder="Shops or websites in Tunisia"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-1.5 flex items-center justify-between">
+          <span class="label mb-0">FAQ</span>
+          <button type="button" class="btn-secondary btn-sm" (click)="addQuestion()">
+            <lucide-icon [img]="icons.Plus" [size]="14" /> Add a question
+          </button>
+        </div>
+        @if (!faq.length) {
+          <p class="text-sm text-slate-400">No questions yet.</p>
+        }
+        <div class="space-y-3">
+          @for (item of faq; track $index; let i = $index) {
+            <div class="flex gap-2 rounded-xl border border-slate-200 p-3">
+              <div class="flex-1 space-y-2">
+                <input class="input" [name]="'question-' + i" [(ngModel)]="item.question" placeholder="Question" [attr.aria-label]="'Question ' + (i + 1)" />
+                <textarea class="input" [name]="'answer-' + i" rows="2" [(ngModel)]="item.answer" placeholder="Answer" [attr.aria-label]="'Answer ' + (i + 1)"></textarea>
+              </div>
+              <button type="button" class="self-start rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600" (click)="removeQuestion(i)" aria-label="Remove question">
+                <lucide-icon [img]="icons.Trash2" [size]="16" />
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex justify-end border-t border-slate-100 pt-4">
+        <button type="submit" class="btn-primary" [disabled]="saving()">
+          @if (saving()) { <lucide-icon [img]="icons.LoaderCircle" [size]="16" class="animate-spin" /> }
+          Save SEO content
+        </button>
+      </div>
+    </form>
+  }
+</div>
