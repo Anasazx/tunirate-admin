@@ -8,6 +8,7 @@ import { DetailedProductResponse } from '../../models/productDTO/detailedProduct
 import { ProductRequest } from '../../models/productDTO/productRequest.model';
 import { ProductFilters, ProductStatusCounts } from '../../models/productDTO/productFilters.model';
 import { ProductStatus } from '../../enums/productStatus.enum.model';
+import { ProductSeo, ProductSeoRequest } from '../../models/productDTO/productSeo.model';
 
 @Injectable({
   providedIn: 'root'
@@ -53,6 +54,14 @@ export class ProductService {
 
   updateProductStatusAsAdmin(productId: number, status: ProductStatus): Observable<void> {
     return this.http.patch<void>(`${this.productUrl}/op/${productId}/status`, { status });
+  }
+
+  getProductSeo(productId: number): Observable<ProductSeo> {
+    return this.http.get<ProductSeo>(`${this.productUrl}/op/${productId}/seo`);
+  }
+
+  updateProductSeo(productId: number, payload: ProductSeoRequest): Observable<ProductSeo> {
+    return this.http.patch<ProductSeo>(`${this.productUrl}/op/${productId}/seo`, payload);
   }
 
   // Multipart body: the JSON "data" part plus optional "images" files
